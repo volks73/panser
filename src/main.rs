@@ -1,24 +1,18 @@
+extern crate panser;
 extern crate serde;
 extern crate serde_json;
 extern crate serde_transcode;
 extern crate rmp_serde;
 
+use panser::{Error, Ok, Result};
 use serde::ser::Serialize;
-use std::error::Error;
 use std::io::{self, Write};
 
-// TODO: Create lib.rs and add Error enum type
-
-fn run() -> Result<(), Box<Error>> {
+fn run() -> Result<Ok> {
     let mut input = String::new();
     io::stdin().read_line(&mut input)?;
     let value: serde_json::Value = serde_json::from_str(&input)?;
-    let result = value.serialize(&mut rmp_serde::Serializer::new(io::stdout()));
-    println!();
-    match result {
-        Ok(_) => Ok(()),
-        Err(e) => Err(Box::new(e))
-    }
+    value.serialize(&mut rmp_serde::Serializer::new(io::stdout())).map_err(|e| Error::MsgpackEncode(e))
 }
 
 fn main() {
@@ -30,6 +24,7 @@ fn main() {
     let result = run();
     match result {
         Ok(_) => {
+            println!(); // Print a newline so the prompt appears below the output
             std::process::exit(0);
         },
         Err(e) => {
