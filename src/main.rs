@@ -7,6 +7,8 @@ use serde::ser::Serialize;
 use std::error::Error;
 use std::io::{self, Write};
 
+// TODO: Create lib.rs and add Error enum type
+
 fn run() -> Result<(), Box<Error>> {
     let mut input = String::new();
     io::stdin().read_line(&mut input)?;
