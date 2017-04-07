@@ -4,18 +4,28 @@ extern crate serde_transcode;
 extern crate rmp_serde;
 
 use serde::ser::Serialize;
+use std::error::Error;
 use std::io::{self, Write};
 
-fn main() {
+fn run() -> Result<(), Box<Error>> {
     let mut input = String::new();
-    //let input = "{\"bool\":true}";
-    //let iter = input.bytes().map(Ok);
-    //let mut deserializer = serde_json::Deserializer::from_reader(io::stdin());
-    //let mut deserializer = serde_json::Deserializer::from_iter(iter);
-    io::stdin().read_line(&mut input).unwrap();
-    let value: serde_json::Value = serde_json::from_str(&input).unwrap();
+    io::stdin().read_line(&mut input)?;
+    let value: serde_json::Value = serde_json::from_str(&input)?;
     let result = value.serialize(&mut rmp_serde::Serializer::new(io::stdout()));
     println!();
+    match result {
+        Ok(_) => Ok(()),
+        Err(e) => Err(Box::new(e))
+    }
+}
+
+fn main() {
+    // TODO: Mask EOF error 
+    // TODO: Change to continuously reading STDIN, see wsta project
+    // TODO: Add `-f,--from` option
+    // TODO: Add `-t,--to` option
+    // TODO: Add `-o,--output` option
+    let result = run();
     match result {
         Ok(_) => {
             std::process::exit(0);
