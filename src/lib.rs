@@ -8,7 +8,6 @@ use std::io;
 use std::result;
 
 pub type Result<T> = result::Result<T, Error>;
-pub type Ok = ();
 
 #[derive(Debug)]
 pub enum Error {
@@ -58,6 +57,18 @@ impl From<io::Error> for Error {
 impl From<serde_json::Error> for Error {
     fn from(err: serde_json::Error) -> Error {
         Error::Json(err)
+    }
+}
+
+impl From<rmp_serde::encode::Error> for Error {
+    fn from(err: rmp_serde::encode::Error) -> Error {
+        Error::MsgpackEncode(err)
+    }
+}
+
+impl From<rmp_serde::decode::Error> for Error {
+    fn from(err: rmp_serde::decode::Error) -> Error {
+        Error::MsgpackDecode(err)
     }
 }
 
