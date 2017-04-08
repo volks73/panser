@@ -32,13 +32,7 @@ fn run() -> Result<()> {
         if let Ok(input) = message_rx.recv() {
             let value: serde_json::Value = serde_json::from_str(&input)?;
             value.serialize(&mut rmp_serde::Serializer::new(io::stdout()))?;
-            // The println serves two purposes, adds a new for the next input since the serialize
-            // to STDOUT does not include a newline character at the end and it causes the flushing
-            // of the STDOUT buffer so that the output is actually written to STDOUT.
-            println!();
-            //io::stdout().flush()?;
-            // TODO: Change to println! only if in "interactive" mode. Right now, this will add
-            // a newline character to the end of all encoded/serialized messages to STDOUT.
+            io::stdout().flush()?;
         } else {
             break;
         }
