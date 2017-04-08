@@ -4,3 +4,17 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+## [0.0.2] - 2017-04-08
+
+### Added
+
+- Better error handling
+- Reading STDIN interactively.
+
+## [0.0.1] - 2017-04-07
+
+### Added
+
+- Reading JSON from STDIN.
+- Transcoding from [JSON](http://www.json.org) to [MessagePack](http://www.msgpack.org).
+
