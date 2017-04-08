@@ -11,6 +11,7 @@ use std::sync::mpsc;
 use std::thread;
 
 fn run() -> Result<()> {
+    // Reading from STDIN should be conducted on a separate thread since it is blocking.
     let (message_tx, message_rx) = mpsc::channel::<String>();
     thread::spawn(move || {
         loop {
@@ -20,7 +21,10 @@ fn run() -> Result<()> {
             if input.is_empty() {
                 break;
             } else {
-                message_tx.send(input).unwrap();
+                input.pop(); // Remove trailing newline character (0xA)
+                if !input.is_empty() {
+                    message_tx.send(input).unwrap();
+                }
             }
         }
     });
@@ -32,6 +36,9 @@ fn run() -> Result<()> {
             // to STDOUT does not include a newline character at the end and it causes the flushing
             // of the STDOUT buffer so that the output is actually written to STDOUT.
             println!();
+            //io::stdout().flush()?;
+            // TODO: Change to println! only if in "interactive" mode. Right now, this will add
+            // a newline character to the end of all encoded/serialized messages to STDOUT.
         } else {
             break;
         }
