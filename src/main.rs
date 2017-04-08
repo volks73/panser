@@ -16,7 +16,6 @@ fn run() -> Result<()> {
     thread::spawn(move || {
         loop {
             let mut input = String::new();
-            // TODO: Add better error handling
             io::stdin().read_line(&mut input).unwrap();
             if input.is_empty() {
                 break;
@@ -37,7 +36,6 @@ fn run() -> Result<()> {
             break;
         }
     }
-    Ok(())
 }
 
 fn main() {
