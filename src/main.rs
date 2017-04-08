@@ -1,29 +1,44 @@
+// Copyright (C) 2017 Christopher R. Field. All rights reserved.
+
+#[macro_use]
+extern crate clap;
 extern crate panser;
 extern crate serde;
 extern crate serde_json;
 extern crate serde_transcode;
 extern crate rmp_serde;
 
+use clap::{App, Arg};
 use panser::Result;
 use serde::ser::Serialize;
 use std::io::{self, Write};
 use std::sync::mpsc;
 use std::thread;
 
-fn run() -> Result<()> {
+fn run(input: Option<&str>) -> Result<()> {
+    if let Some(i) = input {
+        unimplemented!();
+        Ok(())
+    } else {
+        run_stdin()
+    }
+}
+
+fn run_stdin() -> Result<()> {
     // Reading from STDIN should be conducted on a separate thread since it is blocking.
     let (message_tx, message_rx) = mpsc::channel::<String>();
     thread::spawn(move || {
         loop {
-            let mut input = String::new();
-            io::stdin().read_line(&mut input).unwrap();
-            if input.is_empty() {
-                break;
-            } else {
-                input.pop(); // Remove trailing newline character (0xA)
-                if !input.is_empty() {
-                    message_tx.send(input).unwrap();
+            let mut buf = String::new();
+            let bytes_count = io::stdin().read_line(&mut buf).unwrap();
+            if bytes_count > 0 {
+                buf.pop(); // Remove trailing newline character (0xA)
+                if !buf.is_empty() {
+                    message_tx.send(buf).unwrap();
                 }
+            } else {
+                // EOF reached
+                break;
             }
         }
     });
@@ -31,11 +46,12 @@ fn run() -> Result<()> {
         if let Ok(input) = message_rx.recv() {
             let value: serde_json::Value = serde_json::from_str(&input)?;
             value.serialize(&mut rmp_serde::Serializer::new(io::stdout()))?;
-            io::stdout().flush()?;
+            println!();
         } else {
             break;
         }
     }
+    Ok(())
 }
 
 fn main() {
@@ -49,10 +65,17 @@ fn main() {
     // TODO: Add `-f,--from` option
     // TODO: Add `-t,--to` option
     // TODO: Add `-o,--output` option. If not specified, output is written to STDOUT
-    let result = run();
+    let matches = App::new("panser")
+        .version(crate_version!())
+        .author("Christopher R. Field <cfield2@gmail.com>")
+        .about("An application for transcoding serialization formats.") 
+        .arg(Arg::with_name("FILE")
+             .help("A file to read as input instead of reading from STDIN. If a file extension exists, then it is used to determine the format of the serialized data contained within the file. If a file extension does not exist, then the '-f,--from' option should be used or JSON is assumed.")
+             .index(1))
+        .get_matches();
+    let result = run(matches.value_of("FILE"));
     match result {
         Ok(_) => {
-            println!(); // Print a newline so the prompt appears below the output
             std::process::exit(0);
         },
         Err(e) => {
