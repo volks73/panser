@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+### Added
+
+- The optional `FILE` argument to read from a file instead of STDIN.
+
 ## [0.0.2] - 2017-04-08
 
 ### Added

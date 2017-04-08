@@ -11,17 +11,32 @@ extern crate rmp_serde;
 use clap::{App, Arg};
 use panser::Result;
 use serde::ser::Serialize;
-use std::io::{self, Write};
+use std::fs::File;
+use std::io::{self, BufReader, Read, Write};
 use std::sync::mpsc;
 use std::thread;
 
+fn transcode(input: &str) -> Result<()> {
+    let value: serde_json::Value = serde_json::from_str(input)?;
+    value.serialize(&mut rmp_serde::Serializer::new(io::stdout()))?;
+    Ok(())
+}
+
 fn run(input: Option<&str>) -> Result<()> {
     if let Some(i) = input {
-        unimplemented!();
-        Ok(())
+        run_file(i)
     } else {
         run_stdin()
     }
+}
+
+fn run_file(input: &str) -> Result<()> {
+    let file = File::open(input)?;
+    let mut buf_reader = BufReader::new(file);
+    let mut buf = String::new();
+    buf_reader.read_to_string(&mut buf)?;
+    transcode(&buf)?;
+    Ok(())
 }
 
 fn run_stdin() -> Result<()> {
@@ -44,8 +59,7 @@ fn run_stdin() -> Result<()> {
     });
     loop {
         if let Ok(input) = message_rx.recv() {
-            let value: serde_json::Value = serde_json::from_str(&input)?;
-            value.serialize(&mut rmp_serde::Serializer::new(io::stdout()))?;
+            transcode(&input)?;
             println!();
         } else {
             break;
@@ -55,7 +69,6 @@ fn run_stdin() -> Result<()> {
 }
 
 fn main() {
-    // TODO: Add optional argument for input file. If not specified, then input is read from STDIN
     // TODO: Add determining `from` format from file extension if present for input
     // TODO; Add determining `to` format from file extension if present for output
     // TODO: Add `--framed-input` flag, which indicates the input has a prepended message length as
