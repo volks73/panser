@@ -22,11 +22,11 @@ fn transcode(input: &str) -> Result<()> {
     Ok(())
 }
 
-fn run(input: Option<&str>) -> Result<()> {
+fn run(input: Option<&str>, suppress_newline: bool) -> Result<()> {
     if let Some(i) = input {
         run_file(i)
     } else {
-        run_stdin()
+        run_stdin(suppress_newline)
     }
 }
 
@@ -39,7 +39,7 @@ fn run_file(input: &str) -> Result<()> {
     Ok(())
 }
 
-fn run_stdin() -> Result<()> {
+fn run_stdin(suppress_newline: bool) -> Result<()> {
     // Reading from STDIN should be conducted on a separate thread since it is blocking.
     let (message_tx, message_rx) = mpsc::channel::<String>();
     thread::spawn(move || {
@@ -60,7 +60,11 @@ fn run_stdin() -> Result<()> {
     loop {
         if let Ok(input) = message_rx.recv() {
             transcode(&input)?;
-            println!();
+            if suppress_newline {
+                io::stdout().flush()?;
+            } else {
+                println!();
+            }
         } else {
             break;
         }
@@ -85,8 +89,12 @@ fn main() {
         .arg(Arg::with_name("FILE")
              .help("A file to read as input instead of reading from STDIN. If a file extension exists, then it is used to determine the format of the serialized data contained within the file. If a file extension does not exist, then the '-f,--from' option should be used or JSON is assumed.")
              .index(1))
+        .arg(Arg::with_name("suppress-newline")
+             .help("Suppresses writing a newline character (0x0A) at the end of the output. By default, a newline character is appended to the output written to STDOUT. This can be a problem in a some instances when piping binary data to other commands or applications.")
+             .long("suppress-newline")
+             .short("n"))
         .get_matches();
-    let result = run(matches.value_of("FILE"));
+    let result = run(matches.value_of("FILE"), matches.is_present("suppress-newline"));
     match result {
         Ok(_) => {
             std::process::exit(0);
