@@ -48,17 +48,31 @@ fn run_file(input: &str, output: Option<&str>, framed_input: bool, framed_output
     let file = File::open(input)?;
     let mut reader = BufReader::new(file);
     let mut buf = Vec::new();
+    // The framed input reading should occur within the reading of the file, not just at the
+    // beginning of the file. There can be instances where multiple framed messages appear in
+    // a file. After reading each frame, the message should be sent for transcoding, similar to
+    // reading STDIN. This should then be moved to just before the `transcode` call.
+    //
+    // Framed input is generally used for piping data into panser from a TCP connection. Framing
+    // makes it easier to buffer.
     if framed_input {
+        // TODO: Add STDIN-like producer-consumer reading where each message is sent for
+        // transcoding
         let mut frame_length = [0; 4];
         reader.read_exact(&mut frame_length)?;
+    } else {
+        let bytes_count = reader.read_to_end(&mut buf)?;
+        if bytes_count > 0 {
+            transcode(&buf, output, framed_output)?;
+        }
     }
-    reader.read_to_end(&mut buf)?;
-    transcode(&buf, output, framed_output)?;
     Ok(())
 }
 
 fn run_stdin(output: Option<&str>, suppress_newline: bool, framed_output: bool) -> Result<()> {
     // Reading from STDIN should be conducted on a separate thread since it is blocking.
+    // TODO: Refactor this to be more generic so the producer-consumer architecture can be re-used
+    // for framed input from a File or STDIN.
     let (message_tx, message_rx) = mpsc::channel::<String>();
     thread::spawn(move || {
         loop {
@@ -92,6 +106,8 @@ fn run_stdin(output: Option<&str>, suppress_newline: bool, framed_output: bool) 
 }
 
 fn main() {
+    // TODO: Add `-i,--interactive` flag. This would treat STDIN like a terminal, which is the
+    // current implementation by default, but would be getter if this is not the default.
     // TODO: Add determining `from` format from file extension if present for input
     // TODO; Add determining `to` format from file extension if present for output
     // TODO: Add `-f,--from` option
