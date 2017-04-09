@@ -35,18 +35,22 @@ fn transcode(input: &str, output: Option<&str>, framed: bool) -> Result<()> {
     Ok(())
 }
 
-fn run(input: Option<&str>, output: Option<&str>, suppress_newline: bool, framed_output: bool) -> Result<()> {
+fn run(input: Option<&str>, output: Option<&str>, suppress_newline: bool, framed_input: bool, framed_output: bool) -> Result<()> {
     if let Some(i) = input {
-        run_file(i, output, framed_output)
+        run_file(i, output, framed_input, framed_output)
     } else {
         run_stdin(output, suppress_newline, framed_output)
     }
 }
 
-fn run_file(input: &str, output: Option<&str>, framed_output: bool) -> Result<()> {
+fn run_file(input: &str, output: Option<&str>, framed_input: bool, framed_output: bool) -> Result<()> {
     let file = File::open(input)?;
     let mut buf_reader = BufReader::new(file);
     let mut buf = String::new();
+    if framed_input {
+        let mut frame_length = [0; 4];
+        buf_reader.read_exact(&mut frame_length)?;
+    }
     buf_reader.read_to_string(&mut buf)?;
     transcode(&buf, output, framed_output)?;
     Ok(())
@@ -58,6 +62,7 @@ fn run_stdin(output: Option<&str>, suppress_newline: bool, framed_output: bool) 
     thread::spawn(move || {
         loop {
             let mut buf = String::new();
+            // TODO: Add reading input when the `--framed-input` flag is specified.
             let bytes_count = io::stdin().read_line(&mut buf).unwrap();
             if bytes_count > 0 {
                 buf.pop(); // Remove trailing newline character (0xA)
@@ -88,10 +93,6 @@ fn run_stdin(output: Option<&str>, suppress_newline: bool, framed_output: bool) 
 fn main() {
     // TODO: Add determining `from` format from file extension if present for input
     // TODO; Add determining `to` format from file extension if present for output
-    // TODO: Add `--framed-input` flag, which indicates the input has a prepended message length as
-    // a 32-bit integer
-    // TODO: Add `--framed-output` flag, which prepents the length of the serialized data as
-    // a 32-bit signed integer
     // TODO: Add `-f,--from` option
     // TODO: Add `-t,--to` option
     // TODO: Add support for other formats
@@ -122,6 +123,7 @@ fn main() {
         matches.value_of("FILE"), 
         matches.value_of("output"), 
         matches.is_present("suppress-newline"), 
+        matches.is_present("framed-input"),
         matches.is_present("framed-output")
     );
     match result {
