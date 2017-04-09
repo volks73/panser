@@ -9,9 +9,17 @@ All notable changes to this project will be documented in this file, which is wr
 - The `-o,--output` option to write output other than STDOUT.
 - The optional `FILE` argument to read from a file instead of STDIN.
 
+### Changed
+
+- Handling of STDIN to be more conventional.
+
 ### Fixed
 
 - Panics when file not found.
+
+### Removed
+
+- Explicitly STDIN interactivity.
 
 ## [0.0.2] - 2017-04-08
 
