@@ -6,7 +6,6 @@ extern crate byteorder;
 extern crate panser;
 extern crate serde;
 extern crate serde_json;
-extern crate serde_transcode;
 extern crate rmp_serde;
 
 use byteorder::{ByteOrder, BigEndian, ReadBytesExt};
