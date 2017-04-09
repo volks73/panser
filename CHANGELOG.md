@@ -8,7 +8,10 @@ All notable changes to this project will be documented in this file, which is wr
 
 - The `-o,--output` option to write output other than STDOUT.
 - The optional `FILE` argument to read from a file instead of STDIN.
-- The `-n,--suppress-newline` flag to suppress output of the newline character (0x0A) if needed.
+
+### Fixed
+
+- Panics when file not found.
 
 ## [0.0.2] - 2017-04-08
 

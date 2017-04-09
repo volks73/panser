@@ -33,7 +33,7 @@ fn transcode<W: Write>(input: &[u8], output: &mut W, framed: bool) -> Result<()>
     Ok(())
 }
 
-fn run_read<R: Read + Send>(mut reader: R, framed: bool, message_tx: mpsc::Sender<Vec<u8>>) -> Result<()> {
+fn read<R: Read + Send>(mut reader: R, framed: bool, message_tx: mpsc::Sender<Vec<u8>>) -> Result<()> {
     loop {
         if framed {
             let mut frame_length_buf = [0; 4];
@@ -86,7 +86,7 @@ fn run(input: Option<&str>, output: Option<&str>, framed_input: bool, framed_out
         }
     };
     let handle = thread::spawn(move || {
-        run_read(reader, framed_input, message_tx).map_err(|e| {
+        read(reader, framed_input, message_tx).map_err(|e| {
             match e {
                 Error::Eof => Ok(()),
                 _ => Err(e),
