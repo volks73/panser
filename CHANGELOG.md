@@ -4,8 +4,12 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+## [0.0.3] - 2017-04-09
+
 ### Added
 
+- The `--framed-input` flag.
+- The `--framed-output` flag.
 - The `-o,--output` option to write output other than STDOUT.
 - The optional `FILE` argument to read from a file instead of STDIN.
 
