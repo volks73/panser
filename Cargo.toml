@@ -4,7 +4,7 @@ version = "0.0.2"
 authors = ["Christopher Field <cfield2@gmail.com>"]
 
 [dependencies]
-byteorder = "*"
+byteorder = "1"
 clap = "*"
 serde = "0.9"
 serde_json = "0.9"

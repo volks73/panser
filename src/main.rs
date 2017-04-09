@@ -15,14 +15,15 @@ use panser::Result;
 use serde::ser::Serialize;
 use std::fs::File;
 use std::io::{self, BufReader, Read, Write};
+use std::str;
 use std::sync::mpsc;
 use std::thread;
 
-fn transcode(input: &str, output: Option<&str>, framed: bool) -> Result<()> {
+fn transcode(input: &[u8], output: Option<&str>, framed: bool) -> Result<()> {
     let mut out: Box<Write> = output.map_or(Box::new(io::stdout()), |o| {
         Box::new(File::create(o).unwrap())
     });
-    let value: serde_json::Value = serde_json::from_str(input)?;
+    let value: serde_json::Value = serde_json::from_slice(input)?;
     let mut buf = Vec::new();
     value.serialize(&mut rmp_serde::Serializer::new(&mut buf))?;
     if framed {
@@ -45,13 +46,13 @@ fn run(input: Option<&str>, output: Option<&str>, suppress_newline: bool, framed
 
 fn run_file(input: &str, output: Option<&str>, framed_input: bool, framed_output: bool) -> Result<()> {
     let file = File::open(input)?;
-    let mut buf_reader = BufReader::new(file);
-    let mut buf = String::new();
+    let mut reader = BufReader::new(file);
+    let mut buf = Vec::new();
     if framed_input {
         let mut frame_length = [0; 4];
-        buf_reader.read_exact(&mut frame_length)?;
+        reader.read_exact(&mut frame_length)?;
     }
-    buf_reader.read_to_string(&mut buf)?;
+    reader.read_to_end(&mut buf)?;
     transcode(&buf, output, framed_output)?;
     Ok(())
 }
@@ -77,7 +78,7 @@ fn run_stdin(output: Option<&str>, suppress_newline: bool, framed_output: bool) 
     });
     loop {
         if let Ok(input) = message_rx.recv() {
-            transcode(&input, output, framed_output)?;
+            transcode(input.as_bytes(), output, framed_output)?;
             if suppress_newline {
                 io::stdout().flush()?;
             } else {

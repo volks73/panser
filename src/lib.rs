@@ -5,6 +5,7 @@ extern crate rmp_serde;
 use std::error::Error as StdError;
 use std::fmt;
 use std::io;
+use std::str;
 use std::result;
 
 pub type Result<T> = result::Result<T, Error>;
@@ -15,6 +16,7 @@ pub enum Error {
     Json(serde_json::Error),
     MsgpackDecode(rmp_serde::decode::Error),
     MsgpackEncode(rmp_serde::encode::Error),
+    Utf8(str::Utf8Error),
 }
 
 impl fmt::Display for Error {
@@ -24,6 +26,7 @@ impl fmt::Display for Error {
             Error::Json(ref message) => write!(f, "{}", message),
             Error::MsgpackDecode(ref message) => write!(f, "{}", message),
             Error::MsgpackEncode(ref message) => write!(f, "{}", message),
+            Error::Utf8(ref message) => write!(f, "{}", message),
         }
     }
 }
@@ -35,6 +38,7 @@ impl StdError for Error {
             Error::Json(..) => "JSON error",
             Error::MsgpackDecode(..) => "MessagePack decoding error",
             Error::MsgpackEncode(..) => "MessagePack encoding error",
+            Error::Utf8(..) => "UTF-8 error",
         }
     }
 
@@ -44,6 +48,7 @@ impl StdError for Error {
             Error::Json(ref err) => Some(err),
             Error::MsgpackDecode(ref err) => Some(err),
             Error::MsgpackEncode(ref err) => Some(err),
+            Error::Utf8(ref err) => Some(err),
         }
     }
 }
@@ -51,6 +56,12 @@ impl StdError for Error {
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error {
         Error::Io(err)
+    }
+}
+
+impl From<str::Utf8Error> for Error {
+    fn from(err: str::Utf8Error) -> Error {
+        Error::Utf8(err)
     }
 }
 
