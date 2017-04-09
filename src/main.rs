@@ -71,12 +71,20 @@ fn run_read<R: Read + Send>(mut reader: R, framed: bool, message_tx: mpsc::Sende
 
 fn run(input: Option<&str>, output: Option<&str>, framed_input: bool, framed_output: bool) -> Result<()> {
     let (message_tx, message_rx) = mpsc::channel::<Vec<u8>>();
-    let mut writer: Box<Write> = output.map_or(Box::new(io::stdout()), |o| {
-        Box::new(File::create(o).unwrap())
-    });
-    let reader: Box<Read + Send> = input.map_or(Box::new(io::stdin()), |i| {
-        Box::new(File::open(i).unwrap())
-    });
+    let mut writer: Box<Write> = {
+        if let Some(o) = output {
+            Box::new(File::create(o)?)
+        } else {
+            Box::new(io::stdout())
+        }
+    };
+    let reader: Box<Read + Send> = {
+        if let Some(i) = input {
+            Box::new(File::open(i)?)
+        } else {
+            Box::new(io::stdin())
+        }
+    };
     let handle = thread::spawn(move || {
         run_read(reader, framed_input, message_tx).map_err(|e| {
             match e {
@@ -93,8 +101,7 @@ fn run(input: Option<&str>, output: Option<&str>, framed_input: bool, framed_out
             break;
         }
     }
-    // TODO: Add casting thread error, which is a panser error, to a panser error
-    let _ = handle.join();
+    handle.join()?;
     Ok(())
 }
 
