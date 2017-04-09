@@ -12,6 +12,7 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
+    Eof,
     Io(io::Error),
     Json(serde_json::Error),
     MsgpackDecode(rmp_serde::decode::Error),
@@ -22,6 +23,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            Error::Eof => write!(f, "End of file reached"),
             Error::Io(ref message) => write!(f, "{}", message),
             Error::Json(ref message) => write!(f, "{}", message),
             Error::MsgpackDecode(ref message) => write!(f, "{}", message),
@@ -34,6 +36,7 @@ impl fmt::Display for Error {
 impl StdError for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::Eof => "Eof error",
             Error::Io(..) => "IO error",
             Error::Json(..) => "JSON error",
             Error::MsgpackDecode(..) => "MessagePack decoding error",
@@ -49,6 +52,7 @@ impl StdError for Error {
             Error::MsgpackDecode(ref err) => Some(err),
             Error::MsgpackEncode(ref err) => Some(err),
             Error::Utf8(ref err) => Some(err),
+            _ => None,
         }
     }
 }

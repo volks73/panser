@@ -9,105 +9,97 @@ extern crate serde_json;
 extern crate serde_transcode;
 extern crate rmp_serde;
 
-use byteorder::{ByteOrder, BigEndian};
+use byteorder::{ByteOrder, BigEndian, ReadBytesExt};
 use clap::{App, Arg};
-use panser::Result;
+use panser::{Error, Result};
 use serde::ser::Serialize;
 use std::fs::File;
-use std::io::{self, BufReader, Read, Write};
+use std::io::{self, Cursor, ErrorKind, Read, Write};
 use std::str;
 use std::sync::mpsc;
 use std::thread;
 
-fn transcode(input: &[u8], output: Option<&str>, framed: bool) -> Result<()> {
-    let mut out: Box<Write> = output.map_or(Box::new(io::stdout()), |o| {
-        Box::new(File::create(o).unwrap())
-    });
+fn transcode<W: Write>(input: &[u8], output: &mut W, framed: bool) -> Result<()> {
     let value: serde_json::Value = serde_json::from_slice(input)?;
     let mut buf = Vec::new();
     value.serialize(&mut rmp_serde::Serializer::new(&mut buf))?;
     if framed {
         let mut frame_length = [0; 4];
         BigEndian::write_u32(&mut frame_length, buf.len() as u32);
-        out.write(&frame_length)?;
+        output.write(&frame_length)?;
     }
-    out.write(&buf)?;
-    out.flush()?;
+    output.write(&buf)?;
+    output.flush()?;
     Ok(())
 }
 
-fn run(input: Option<&str>, output: Option<&str>, suppress_newline: bool, framed_input: bool, framed_output: bool) -> Result<()> {
-    if let Some(i) = input {
-        run_file(i, output, framed_input, framed_output)
-    } else {
-        run_stdin(output, suppress_newline, framed_output)
-    }
-}
-
-fn run_file(input: &str, output: Option<&str>, framed_input: bool, framed_output: bool) -> Result<()> {
-    let file = File::open(input)?;
-    let mut reader = BufReader::new(file);
-    let mut buf = Vec::new();
-    // The framed input reading should occur within the reading of the file, not just at the
-    // beginning of the file. There can be instances where multiple framed messages appear in
-    // a file. After reading each frame, the message should be sent for transcoding, similar to
-    // reading STDIN. This should then be moved to just before the `transcode` call.
-    //
-    // Framed input is generally used for piping data into panser from a TCP connection. Framing
-    // makes it easier to buffer.
-    if framed_input {
-        // TODO: Add STDIN-like producer-consumer reading where each message is sent for
-        // transcoding
-        let mut frame_length = [0; 4];
-        reader.read_exact(&mut frame_length)?;
-    } else {
-        let bytes_count = reader.read_to_end(&mut buf)?;
-        if bytes_count > 0 {
-            transcode(&buf, output, framed_output)?;
-        }
-    }
-    Ok(())
-}
-
-fn run_stdin(output: Option<&str>, suppress_newline: bool, framed_output: bool) -> Result<()> {
-    // Reading from STDIN should be conducted on a separate thread since it is blocking.
-    // TODO: Refactor this to be more generic so the producer-consumer architecture can be re-used
-    // for framed input from a File or STDIN.
-    let (message_tx, message_rx) = mpsc::channel::<String>();
-    thread::spawn(move || {
-        loop {
-            let mut buf = String::new();
-            // TODO: Add reading input when the `--framed-input` flag is specified.
-            let bytes_count = io::stdin().read_line(&mut buf).unwrap();
+fn run_read<R: Read + Send>(mut reader: R, framed: bool, message_tx: mpsc::Sender<Vec<u8>>) -> Result<()> {
+    loop {
+        if framed {
+            let mut frame_length_buf = [0; 4];
+            reader.read_exact(&mut frame_length_buf).map_err(|e| {
+                match e.kind() {
+                    ErrorKind::UnexpectedEof => Error::Eof,
+                    _ => Error::Io(e)
+                }
+            })?;
+            let mut frame_length_cursor = Cursor::new(frame_length_buf);
+            let frame_length = frame_length_cursor.read_u32::<BigEndian>()?;
+            let mut buf = Vec::with_capacity(frame_length as usize);
+            reader.read_exact(&mut buf).map_err(|e| {
+                match e.kind() {
+                    ErrorKind::UnexpectedEof => Error::Eof,
+                    _ => Error::Io(e)
+                }
+            })?;
+            message_tx.send(buf).unwrap();
+        } else {
+            let mut buf = Vec::new();
+            let bytes_count = reader.read_to_end(&mut buf)?;
             if bytes_count > 0 {
-                buf.pop(); // Remove trailing newline character (0xA)
                 if !buf.is_empty() {
                     message_tx.send(buf).unwrap();
                 }
             } else {
-                // EOF reached
+                // EOF
                 break;
             }
-        }
-    });
-    loop {
-        if let Ok(input) = message_rx.recv() {
-            transcode(input.as_bytes(), output, framed_output)?;
-            if suppress_newline {
-                io::stdout().flush()?;
-            } else {
-                println!();
-            }
-        } else {
-            break;
         }
     }
     Ok(())
 }
 
+fn run(input: Option<&str>, output: Option<&str>, framed_input: bool, framed_output: bool) -> Result<()> {
+    let (message_tx, message_rx) = mpsc::channel::<Vec<u8>>();
+    let mut writer: Box<Write> = output.map_or(Box::new(io::stdout()), |o| {
+        Box::new(File::create(o).unwrap())
+    });
+    let reader: Box<Read + Send> = input.map_or(Box::new(io::stdin()), |i| {
+        Box::new(File::open(i).unwrap())
+    });
+    let handle = thread::spawn(move || {
+        run_read(reader, framed_input, message_tx).map_err(|e| {
+            match e {
+                Error::Eof => Ok(()),
+                _ => Err(e),
+            }
+        }).unwrap();
+    });
+    loop {
+        if let Ok(input) = message_rx.recv() {
+            transcode(&input, &mut writer, framed_output)?;
+            writer.flush()?;
+        } else {
+            break;
+        }
+    }
+    // TODO: Add casting thread error, which is a panser error, to a panser error
+    let _ = handle.join();
+    Ok(())
+}
+
 fn main() {
-    // TODO: Add `-i,--interactive` flag. This would treat STDIN like a terminal, which is the
-    // current implementation by default, but would be getter if this is not the default.
+    // TODO: Add interactive (-i) mode, maybe.
     // TODO: Add determining `from` format from file extension if present for input
     // TODO; Add determining `to` format from file extension if present for output
     // TODO: Add `-f,--from` option
@@ -131,15 +123,10 @@ fn main() {
              .long("output")
              .short("o")
              .takes_value(true))
-        .arg(Arg::with_name("suppress-newline")
-             .help("Suppresses writing a newline character (0x0A) at the end of the output. By default, a newline character is appended to the output written to STDOUT. This can be a problem in a some instances when piping binary data to other commands or applications.")
-             .long("suppress-newline")
-             .short("n"))
         .get_matches();
     let result = run(
         matches.value_of("FILE"), 
         matches.value_of("output"), 
-        matches.is_present("suppress-newline"), 
         matches.is_present("framed-input"),
         matches.is_present("framed-output")
     );
