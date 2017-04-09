@@ -57,6 +57,7 @@ fn read<R: Read + Send>(mut reader: R, framed: bool, message_tx: mpsc::Sender<Ve
             let mut buf = Vec::new();
             let bytes_count = reader.read_to_end(&mut buf)?;
             if bytes_count > 0 {
+                buf.pop(); // Remove trailing newline (0x0A) character
                 if !buf.is_empty() {
                     message_tx.send(buf).unwrap();
                 }
