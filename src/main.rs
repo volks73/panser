@@ -84,7 +84,7 @@ fn main() {
     // a 32-bit signed integer
     // TODO: Add `-f,--from` option
     // TODO: Add `-t,--to` option
-    // TODO: Add `-o,--output` option. If not specified, output is written to STDOUT
+    // TODO: Add support for other formats
     let matches = App::new("panser")
         .version(crate_version!())
         .author("Christopher R. Field <cfield2@gmail.com>")
