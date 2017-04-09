@@ -252,7 +252,7 @@ fn main() {
             .short("f")
             .takes_value(true))
         .arg(Arg::with_name("output")
-            .help("A file to write the output instead of writing to STDOUT. If a file extension exists, then it is used to determined the format of the output serialized data. If a file extension does not exist, then the `-t,--to` opton should be used or MessagePack is assumed.")
+            .help("A file to write the output instead of writing to STDOUT. If a file extension exists, then it is used to determined the format of the output serialized data. If a file extension does not exist, then the `-t,--to` option should be used or the MessagePack format is assumed.")
             .long("output")
             .short("o")
             .takes_value(true))
