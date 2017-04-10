@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file, which is wr
 - The `-t,--to` option.
 - Case insensitivity to the `-f,--from` option.
 - Case insensitivity to the `-t,--to` option
+- Deserialization of the Envy format.
 - Deserialization of the URL format.
 - Serialization of the URL format.
 - Deserialization of the CBOR format.

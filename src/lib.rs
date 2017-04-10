@@ -1,5 +1,6 @@
 // Copyright (C) 2017 Christopher R. Field. All rights reserved.
 extern crate bincode;
+extern crate envy;
 extern crate rmp_serde;
 extern crate serde;
 extern crate serde_cbor;
@@ -7,6 +8,7 @@ extern crate serde_hjson;
 extern crate serde_json;
 extern crate serde_pickle;
 extern crate serde_urlencoded;
+extern crate serde_xml;
 extern crate serde_yaml;
 extern crate toml;
 
@@ -97,7 +99,6 @@ pub enum FromFormat {
     Json,
     Msgpack,
     Pickle,
-    Redis,
     Toml,
     Url,
     Xml,
@@ -115,7 +116,6 @@ impl FromFormat {
             "Json", "json", "JSON",
             "Msgpack", "msgpack", "MSGPACK",
             "Pickle", "pickle", "PICKLE",
-            "Redis", "redis", "REDIS",
             "Toml", "toml", "TOML",
             "Url", "url", "URL",
             "Xml", "xml", "XML",
@@ -135,7 +135,6 @@ impl fmt::Display for FromFormat {
             FromFormat::Json => write!(f, "JSON"),
             FromFormat::Msgpack => write!(f, "Msgpack"),
             FromFormat::Pickle => write!(f, "Pickle"),
-            FromFormat::Redis => write!(f, "Redis"),
             FromFormat::Toml => write!(f, "TOML"),
             FromFormat::Url => write!(f, "URL"),
             FromFormat::Xml => write!(f, "XML"),
@@ -157,7 +156,6 @@ impl FromStr for FromFormat {
             "json" => Ok(FromFormat::Json),
             "msgpack" => Ok(FromFormat::Msgpack),
             "pickle" => Ok(FromFormat::Pickle),
-            "redis" => Ok(FromFormat::Redis),
             "toml" => Ok(FromFormat::Toml),
             "url" => Ok(FromFormat::Url),
             "xml" => Ok(FromFormat::Xml),
@@ -171,6 +169,7 @@ impl FromStr for FromFormat {
 pub enum Error {
     Bincode(bincode::Error),
     Cbor(serde_cbor::Error),
+    Envy(envy::Error),
     Eof,
     Generic(String),
     Hjson(serde_hjson::Error),
@@ -184,6 +183,7 @@ pub enum Error {
     Utf8(str::Utf8Error),
     UrlDecode(serde_urlencoded::de::Error),
     UrlEncode(serde_urlencoded::ser::Error),
+    Xml(serde_xml::Error),
     Yaml(serde_yaml::Error),
 }
 
@@ -192,6 +192,7 @@ impl fmt::Display for Error {
         match *self {
             Error::Bincode(ref message) => write!(f, "{}", message),
             Error::Cbor(ref message) => write!(f, "{}", message),
+            Error::Envy(ref message) => write!(f, "{}", message),
             Error::Eof => write!(f, "End of file reached"),
             Error::Generic(ref message) => write!(f, "{}", message),
             Error::Hjson(ref message) => write!(f, "{}", message),
@@ -205,6 +206,7 @@ impl fmt::Display for Error {
             Error::UrlDecode(ref message) => write!(f, "{}", message),
             Error::UrlEncode(ref message) => write!(f, "{}", message),
             Error::Utf8(ref message) => write!(f, "{}", message),
+            Error::Xml(ref message) => write!(f, "{}", message),
             Error::Yaml(ref message) => write!(f, "{}", message),
         }
     }
@@ -215,6 +217,7 @@ impl StdError for Error {
         match *self {
             Error::Bincode(..) => "Bincode error",
             Error::Cbor(..) => "CBOR error",
+            Error::Envy(..) => "Envy error",
             Error::Eof => "EOF error",
             Error::Generic(..) => "Generic error",
             Error::Hjson(..) => "Hjson error",
@@ -228,6 +231,7 @@ impl StdError for Error {
             Error::UrlDecode(..) => "URL decoding error",
             Error::UrlEncode(..) => "URL encoding error",
             Error::Utf8(..) => "UTF-8 error",
+            Error::Xml(..) => "XML error",
             Error::Yaml(..) => "YAML error",
         }
     }
@@ -236,6 +240,7 @@ impl StdError for Error {
         match *self {
             Error::Bincode(ref err) => Some(err),
             Error::Cbor(ref err) => Some(err),
+            Error::Envy(ref err) => Some(err),
             Error::Io(ref err) => Some(err),
             Error::Hjson(ref err) => Some(err),
             Error::Json(ref err) => Some(err),
@@ -247,9 +252,39 @@ impl StdError for Error {
             Error::UrlDecode(ref err) => Some(err),
             Error::UrlEncode(ref err) => Some(err),
             Error::Utf8(ref err) => Some(err),
+            Error::Xml(ref err) => Some(err),
             Error::Yaml(ref err) => Some(err),
             _ => None,
         }
+    }
+}
+
+impl From<bincode::Error> for Error {
+    fn from(err: bincode::Error) -> Error {
+        Error::Bincode(err)
+    }
+}
+
+impl From<serde_cbor::Error> for Error {
+    fn from(err: serde_cbor::Error) -> Error {
+        Error::Cbor(err)
+    }
+}
+
+impl From<envy::Error> for Error {
+    fn from(err: envy::Error) -> Error {
+        Error::Envy(err)
+    }
+}
+
+impl From<Box<Any + Send + 'static>> for Error {
+    fn from(err: Box<Any + Send + 'static>) -> Error {
+        Error::Generic(format!("{:?}", err))
+    }
+}
+impl From<serde_hjson::Error> for Error {
+    fn from(err: serde_hjson::Error) -> Error {
+        Error::Hjson(err)
     }
 }
 
@@ -259,33 +294,9 @@ impl From<io::Error> for Error {
     }
 }
 
-impl From<str::Utf8Error> for Error {
-    fn from(err: str::Utf8Error) -> Error {
-        Error::Utf8(err)
-    }
-}
-
 impl From<serde_json::Error> for Error {
     fn from(err: serde_json::Error) -> Error {
         Error::Json(err)
-    }
-}
-
-impl From<serde_pickle::Error> for Error {
-    fn from(err: serde_pickle::Error) -> Error {
-        Error::Pickle(err)
-    }
-}
-
-impl From<serde_yaml::Error> for Error {
-    fn from(err: serde_yaml::Error) -> Error {
-        Error::Yaml(err)
-    }
-}
-
-impl From<serde_cbor::Error> for Error {
-    fn from(err: serde_cbor::Error) -> Error {
-        Error::Cbor(err)
     }
 }
 
@@ -301,15 +312,9 @@ impl From<rmp_serde::decode::Error> for Error {
     }
 }
 
-impl From<bincode::Error> for Error {
-    fn from(err: bincode::Error) -> Error {
-        Error::Bincode(err)
-    }
-}
-
-impl From<serde_hjson::Error> for Error {
-    fn from(err: serde_hjson::Error) -> Error {
-        Error::Hjson(err)
+impl From<serde_pickle::Error> for Error {
+    fn from(err: serde_pickle::Error) -> Error {
+        Error::Pickle(err)
     }
 }
 
@@ -337,9 +342,21 @@ impl From<serde_urlencoded::de::Error> for Error {
     }
 }
 
-impl From<Box<Any + Send + 'static>> for Error {
-    fn from(err: Box<Any + Send + 'static>) -> Error {
-        Error::Generic(format!("{:?}", err))
+impl From<str::Utf8Error> for Error {
+    fn from(err: str::Utf8Error) -> Error {
+        Error::Utf8(err)
+    }
+}
+
+impl From<serde_xml::Error> for Error {
+    fn from(err: serde_xml::Error) -> Error {
+        Error::Xml(err)
+    }
+}
+
+impl From<serde_yaml::Error> for Error {
+    fn from(err: serde_yaml::Error) -> Error {
+        Error::Yaml(err)
     }
 }
 

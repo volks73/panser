@@ -4,6 +4,7 @@
 extern crate clap;
 extern crate bincode;
 extern crate byteorder;
+extern crate envy;
 extern crate panser;
 extern crate rmp_serde;
 extern crate serde;
@@ -12,6 +13,7 @@ extern crate serde_hjson;
 extern crate serde_json;
 extern crate serde_pickle;
 extern crate serde_urlencoded;
+extern crate serde_xml;
 extern crate serde_yaml;
 extern crate toml;
 
@@ -28,18 +30,17 @@ use std::thread;
 fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFormat, framed: bool) -> Result<()> {
     let value = {
         match from {
-            FromFormat::Bincode => unimplemented!(),
-            FromFormat::Bson => unimplemented!(),
+            FromFormat::Bincode => unimplemented!(), // TODO: Change this to an Unsupported format error
+            FromFormat::Bson => unimplemented!(), // TODO: Change this to an Unsupported format error
             FromFormat::Cbor => serde_cbor::from_slice::<serde_json::Value>(input)?,
-            FromFormat::Envy => unimplemented!(),
-            FromFormat::Hjson => unimplemented!(),
+            FromFormat::Envy => envy::from_env::<serde_json::Value>()?,
+            FromFormat::Hjson => unimplemented!(), // The serde_hjson library is out-of-date.
             FromFormat::Json => serde_json::from_slice::<serde_json::Value>(input)?,
             FromFormat::Msgpack => rmp_serde::from_slice::<serde_json::Value>(input)?,
             FromFormat::Pickle => serde_pickle::from_slice::<serde_json::Value>(input)?,
-            FromFormat::Redis => unimplemented!(),
             FromFormat::Toml => toml::from_slice::<serde_json::Value>(input)?,
             FromFormat::Url => serde_urlencoded::from_bytes::<serde_json::Value>(input)?,
-            FromFormat::Xml => unimplemented!(),
+            FromFormat::Xml => unimplemented!(), // The serde_xml library is out-of-date.
             FromFormat::Yaml => serde_yaml::from_slice::<serde_json::Value>(input)?,
         }
     };
@@ -52,7 +53,9 @@ fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFor
         },
         ToFormat::Hjson => unimplemented!(),
         ToFormat::Json => value.serialize(&mut serde_json::Serializer::new(&mut buf))?,
-        ToFormat::Msgpack => value.serialize(&mut rmp_serde::Serializer::new(&mut buf))?,
+        ToFormat::Msgpack => {
+            buf = rmp_serde::to_vec(&value)?;
+        },
         ToFormat::Pickle => value.serialize(&mut serde_pickle::Serializer::new(&mut buf, true))?,
         ToFormat::Toml => {
             buf = toml::to_vec(&value)?;
@@ -164,7 +167,7 @@ fn main() {
             .help("Prepends the total length of the serialized data as an unsigned 32-bit integer in Big Endian (Network Order).")
             .long("framed-output"))
         .arg(Arg::with_name("from")
-            .help("The input format. [values: Bincode, BSON, CBOR, Envy, Hjson, JSON, Msgpack, Pickle, Redis, TOML, URL, XML, YAML]")
+            .help("The input format. [values: Bincode, BSON, CBOR, Envy, Hjson, JSON, Msgpack, Pickle, TOML, URL, XML, YAML]")
             .long("from")
             .short("f")
             .hide_possible_values(true)
