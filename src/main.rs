@@ -21,7 +21,8 @@ use clap::{App, Arg};
 use panser::{Error, FromFormat, Result, ToFormat};
 use std::fs::File;
 use std::io::{self, Cursor, ErrorKind, Read, Write};
-use std::str;
+use std::path::Path;
+use std::str::{self, FromStr};
 use std::sync::mpsc;
 use std::thread;
 
@@ -103,7 +104,7 @@ fn read<R: Read + Send>(mut reader: R, framed: bool, message_tx: mpsc::Sender<Ve
     Ok(())
 }
 
-fn run(input: Option<&str>, output: Option<&str>, from: FromFormat, to: ToFormat, framed_input: bool, framed_output: bool) -> Result<()> {
+fn run(input: Option<&str>, output: Option<&str>, from: Option<FromFormat>, to: Option<ToFormat>, framed_input: bool, framed_output: bool) -> Result<()> {
     let (message_tx, message_rx) = mpsc::channel::<Vec<u8>>();
     let mut writer: Box<Write> = {
         if let Some(o) = output {
@@ -128,8 +129,34 @@ fn run(input: Option<&str>, output: Option<&str>, from: FromFormat, to: ToFormat
         }).unwrap();
     });
     loop {
-        if let Ok(input) = message_rx.recv() {
-            transcode(&input, &mut writer, from, to, framed_output)?;
+        if let Ok(message) = message_rx.recv() {
+            transcode(&message, &mut writer, from.unwrap_or({
+                if let Some(i) = input {
+                    if let Some(e) = Path::new(i).extension() {
+                        FromFormat::from_str(
+                            e.to_str().unwrap_or("json")
+                        ).unwrap_or(FromFormat::Json)
+                    } else {
+                        FromFormat::Json
+                    }
+                } else {
+                    FromFormat::Json
+                }
+            }),
+            to.unwrap_or({
+                if let Some(o) = output {
+                    if let Some(e) = Path::new(o).extension() {
+                        ToFormat::from_str(
+                            e.to_str().unwrap_or("msgpack")
+                        ).unwrap_or(ToFormat::Msgpack)
+                    } else {
+                        ToFormat::Msgpack
+                    }
+                } else {
+                    ToFormat::Msgpack
+                }
+            }), 
+            framed_output)?;
             writer.flush()?;
         } else {
             break;
@@ -141,8 +168,6 @@ fn run(input: Option<&str>, output: Option<&str>, from: FromFormat, to: ToFormat
 
 fn main() {
     // TODO: Add interactive (-i) mode, maybe.
-    // TODO: Add determining `from` format from file extension if present for input
-    // TODO; Add determining `to` format from file extension if present for output
     let matches = App::new("panser")
         .version(crate_version!())
         .about("An application for transcoding serialization formats.") 
@@ -180,8 +205,8 @@ fn main() {
     let result = run(
         matches.value_of("FILE"), 
         matches.value_of("output"), 
-        value_t!(matches, "from", FromFormat).unwrap_or(FromFormat::Json),
-        value_t!(matches, "to", ToFormat).unwrap_or(ToFormat::Msgpack),
+        value_t!(matches, "from", FromFormat).ok(),
+        value_t!(matches, "to", ToFormat).ok(),
         matches.is_present("framed-input"),
         matches.is_present("framed-output")
     );

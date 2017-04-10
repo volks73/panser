@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file, which is wr
 
 - The `-f,--from` option.
 - The `-t,--to` option.
+- Determining the input format from the file extension if a file is given
+- Determining the output format from the file extension if the `-o,--output` option is used.
 - Case insensitivity to the `-f,--from` option.
 - Case insensitivity to the `-t,--to` option
 - Deserialization of the Envy format.
