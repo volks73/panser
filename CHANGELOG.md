@@ -10,6 +10,12 @@ All notable changes to this project will be documented in this file, which is wr
 - The `-t,--to` option.
 - Case insensitivity to the `-f,--from` option.
 - Case insensitivity to the `-t,--to` option
+- Deserialization of the CBOR format.
+- Serialization of the CBOR format.
+- Deserialization of the YAML format.
+- Serialization of the YAML format.
+- Deserialization of the Pickle format.
+- Serialization of the Pickle format.
 - Deserialization of the TOML format.
 - Serialization of the TOML format.
 - Deserialization of the Msgpack format.

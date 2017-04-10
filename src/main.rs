@@ -7,7 +7,11 @@ extern crate byteorder;
 extern crate panser;
 extern crate rmp_serde;
 extern crate serde;
+extern crate serde_cbor;
+extern crate serde_hjson;
 extern crate serde_json;
+extern crate serde_pickle;
+extern crate serde_yaml;
 extern crate toml;
 
 use byteorder::{ByteOrder, BigEndian, ReadBytesExt};
@@ -25,33 +29,37 @@ fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFor
         match from {
             FromFormat::Bincode => unimplemented!(),
             FromFormat::Bson => unimplemented!(),
-            FromFormat::Cbor => unimplemented!(),
+            FromFormat::Cbor => serde_cbor::from_slice::<serde_json::Value>(input)?,
             FromFormat::Envy => unimplemented!(),
             FromFormat::Hjson => unimplemented!(),
             FromFormat::Json => serde_json::from_slice::<serde_json::Value>(input)?,
             FromFormat::Msgpack => rmp_serde::from_slice::<serde_json::Value>(input)?,
-            FromFormat::Pickle => unimplemented!(),
+            FromFormat::Pickle => serde_pickle::from_slice::<serde_json::Value>(input)?,
             FromFormat::Redis => unimplemented!(),
             FromFormat::Toml => toml::from_slice::<serde_json::Value>(input)?,
             FromFormat::Url => unimplemented!(),
             FromFormat::Xml => unimplemented!(),
-            FromFormat::Yaml => unimplemented!(),
+            FromFormat::Yaml => serde_yaml::from_slice::<serde_json::Value>(input)?,
         }
     };
     let mut buf = Vec::new();
     match to {
         ToFormat::Bincode => value.serialize(&mut bincode::Serializer::new(&mut buf))?,
-        ToFormat::Bson => unimplemented!(),
-        ToFormat::Cbor => unimplemented!(),
+        ToFormat::Bson => unimplemented!(), 
+        ToFormat::Cbor => {
+            buf = serde_cbor::to_vec(&value)?;
+        },
         ToFormat::Hjson => unimplemented!(),
         ToFormat::Json => value.serialize(&mut serde_json::Serializer::new(&mut buf))?,
         ToFormat::Msgpack => value.serialize(&mut rmp_serde::Serializer::new(&mut buf))?,
-        ToFormat::Pickle => unimplemented!(),
+        ToFormat::Pickle => value.serialize(&mut serde_pickle::Serializer::new(&mut buf, true))?,
         ToFormat::Toml => {
-            buf = toml::ser::to_vec(&value)?;
-        }
+            buf = toml::to_vec(&value)?;
+        },
         ToFormat::Url => unimplemented!(),
-        ToFormat::Yaml => unimplemented!(),
+        ToFormat::Yaml => {
+            buf = serde_yaml::to_vec(&value)?;
+        },
     }
     if framed {
         let mut frame_length = [0; 4];

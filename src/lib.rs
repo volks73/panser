@@ -2,8 +2,11 @@
 extern crate bincode;
 extern crate rmp_serde;
 extern crate serde;
+extern crate serde_cbor;
 extern crate serde_hjson;
 extern crate serde_json;
+extern crate serde_pickle;
+extern crate serde_yaml;
 extern crate toml;
 
 use std::any::Any;
@@ -166,6 +169,7 @@ impl FromStr for FromFormat {
 #[derive(Debug)]
 pub enum Error {
     Bincode(bincode::Error),
+    Cbor(serde_cbor::Error),
     Eof,
     Generic(String),
     Hjson(serde_hjson::Error),
@@ -173,15 +177,18 @@ pub enum Error {
     Json(serde_json::Error),
     MsgpackDecode(rmp_serde::decode::Error),
     MsgpackEncode(rmp_serde::encode::Error),
+    Pickle(serde_pickle::Error),
     TomlDecode(toml::de::Error),
     TomlEncode(toml::ser::Error),
     Utf8(str::Utf8Error),
+    Yaml(serde_yaml::Error),
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             Error::Bincode(ref message) => write!(f, "{}", message),
+            Error::Cbor(ref message) => write!(f, "{}", message),
             Error::Eof => write!(f, "End of file reached"),
             Error::Generic(ref message) => write!(f, "{}", message),
             Error::Hjson(ref message) => write!(f, "{}", message),
@@ -189,9 +196,11 @@ impl fmt::Display for Error {
             Error::Json(ref message) => write!(f, "{}", message),
             Error::MsgpackDecode(ref message) => write!(f, "{}", message),
             Error::MsgpackEncode(ref message) => write!(f, "{}", message),
+            Error::Pickle(ref message) => write!(f, "{}", message),
             Error::TomlDecode(ref message) => write!(f, "{}", message),
             Error::TomlEncode(ref message) => write!(f, "{}", message),
             Error::Utf8(ref message) => write!(f, "{}", message),
+            Error::Yaml(ref message) => write!(f, "{}", message),
         }
     }
 }
@@ -200,6 +209,7 @@ impl StdError for Error {
     fn description(&self) -> &str {
         match *self {
             Error::Bincode(..) => "Bincode error",
+            Error::Cbor(..) => "CBOR error",
             Error::Eof => "EOF error",
             Error::Generic(..) => "Generic error",
             Error::Hjson(..) => "Hjson error",
@@ -207,23 +217,28 @@ impl StdError for Error {
             Error::Json(..) => "JSON error",
             Error::MsgpackDecode(..) => "MessagePack decoding error",
             Error::MsgpackEncode(..) => "MessagePack encoding error",
+            Error::Pickle(..) => "Pickle error",
             Error::TomlDecode(..) => "TOML decoding error",
             Error::TomlEncode(..) => "TOML encoding error",
             Error::Utf8(..) => "UTF-8 error",
+            Error::Yaml(..) => "YAML error",
         }
     }
 
     fn cause(&self) -> Option<&StdError> {
         match *self {
             Error::Bincode(ref err) => Some(err),
+            Error::Cbor(ref err) => Some(err),
             Error::Io(ref err) => Some(err),
             Error::Hjson(ref err) => Some(err),
             Error::Json(ref err) => Some(err),
             Error::MsgpackDecode(ref err) => Some(err),
             Error::MsgpackEncode(ref err) => Some(err),
+            Error::Pickle(ref err) => Some(err),
             Error::TomlDecode(ref err) => Some(err),
             Error::TomlEncode(ref err) => Some(err),
             Error::Utf8(ref err) => Some(err),
+            Error::Yaml(ref err) => Some(err),
             _ => None,
         }
     }
@@ -244,6 +259,24 @@ impl From<str::Utf8Error> for Error {
 impl From<serde_json::Error> for Error {
     fn from(err: serde_json::Error) -> Error {
         Error::Json(err)
+    }
+}
+
+impl From<serde_pickle::Error> for Error {
+    fn from(err: serde_pickle::Error) -> Error {
+        Error::Pickle(err)
+    }
+}
+
+impl From<serde_yaml::Error> for Error {
+    fn from(err: serde_yaml::Error) -> Error {
+        Error::Yaml(err)
+    }
+}
+
+impl From<serde_cbor::Error> for Error {
+    fn from(err: serde_cbor::Error) -> Error {
+        Error::Cbor(err)
     }
 }
 
