@@ -12,8 +12,8 @@ The Panser project is a Command-Line Interface (CLI) application for deserializi
 
 ### Dependencies ###
 
-- [Cargo](https://crates.io/), v0.12.0 or higher
-- [Rust](https://www.rust-lang.org/), v1.10.0 or higher
+- [Cargo](https://crates.io/), v0.17 or higher
+- [Rust](https://www.rust-lang.org/), v1.16 or higher
 
 ### Quick-Start Instructions ###
 
@@ -28,8 +28,6 @@ Obtain the appropriate source distribution as an archive file and run the follow
     $ cargo build --release
 
 where `#.#.#` is replaced with the version number of the source distribution, respectively.
-
-## Contacts ##
 
 ## License ##
 
