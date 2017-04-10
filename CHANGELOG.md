@@ -21,9 +21,10 @@ All notable changes to this project will be documented in this file, which is wr
 - Serialization of the Pickle format.
 - Deserialization of the TOML format.
 - Serialization of the TOML format.
+- Deserialization of the Bincode format.
+- Serialization of the Bincode format.
 - Deserialization of the Msgpack format.
-- Serialization to the JSON format.
-- Serialization to the Bincode format.
+- Serialization of the JSON format.
 
 ### Fixed
 

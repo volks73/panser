@@ -13,7 +13,6 @@ extern crate serde_hjson;
 extern crate serde_json;
 extern crate serde_pickle;
 extern crate serde_urlencoded;
-extern crate serde_xml;
 extern crate serde_yaml;
 extern crate toml;
 
@@ -40,7 +39,6 @@ fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFor
             FromFormat::Pickle => serde_pickle::from_slice::<serde_json::Value>(input)?,
             FromFormat::Toml => toml::from_slice::<serde_json::Value>(input)?,
             FromFormat::Url => serde_urlencoded::from_bytes::<serde_json::Value>(input)?,
-            FromFormat::Xml => unimplemented!(), // The serde_xml library is out-of-date.
             FromFormat::Yaml => serde_yaml::from_slice::<serde_json::Value>(input)?,
         }
     };

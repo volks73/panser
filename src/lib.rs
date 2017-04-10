@@ -8,7 +8,6 @@ extern crate serde_hjson;
 extern crate serde_json;
 extern crate serde_pickle;
 extern crate serde_urlencoded;
-extern crate serde_xml;
 extern crate serde_yaml;
 extern crate toml;
 
@@ -96,7 +95,6 @@ pub enum FromFormat {
     Pickle,
     Toml,
     Url,
-    Xml,
     Yaml,
 }
 
@@ -112,7 +110,6 @@ impl FromFormat {
             "Pickle", "pickle", "PICKLE",
             "Toml", "toml", "TOML",
             "Url", "url", "URL",
-            "Xml", "xml", "XML",
             "Yaml", "yaml", "YAML",
         ]
     }
@@ -130,7 +127,6 @@ impl fmt::Display for FromFormat {
             FromFormat::Pickle => write!(f, "Pickle"),
             FromFormat::Toml => write!(f, "TOML"),
             FromFormat::Url => write!(f, "URL"),
-            FromFormat::Xml => write!(f, "XML"),
             FromFormat::Yaml => write!(f, "YAML"),
         }
     }
@@ -150,7 +146,6 @@ impl FromStr for FromFormat {
             "pickle" => Ok(FromFormat::Pickle),
             "toml" => Ok(FromFormat::Toml),
             "url" => Ok(FromFormat::Url),
-            "xml" => Ok(FromFormat::Xml),
             "yaml" => Ok(FromFormat::Yaml),
             _ => Err("No Match")
         }
@@ -175,7 +170,6 @@ pub enum Error {
     Utf8(str::Utf8Error),
     UrlDecode(serde_urlencoded::de::Error),
     UrlEncode(serde_urlencoded::ser::Error),
-    Xml(serde_xml::Error),
     Yaml(serde_yaml::Error),
 }
 
@@ -198,7 +192,6 @@ impl fmt::Display for Error {
             Error::UrlDecode(ref message) => write!(f, "{}", message),
             Error::UrlEncode(ref message) => write!(f, "{}", message),
             Error::Utf8(ref message) => write!(f, "{}", message),
-            Error::Xml(ref message) => write!(f, "{}", message),
             Error::Yaml(ref message) => write!(f, "{}", message),
         }
     }
@@ -223,7 +216,6 @@ impl StdError for Error {
             Error::UrlDecode(..) => "URL decoding error",
             Error::UrlEncode(..) => "URL encoding error",
             Error::Utf8(..) => "UTF-8 error",
-            Error::Xml(..) => "XML error",
             Error::Yaml(..) => "YAML error",
         }
     }
@@ -244,7 +236,6 @@ impl StdError for Error {
             Error::UrlDecode(ref err) => Some(err),
             Error::UrlEncode(ref err) => Some(err),
             Error::Utf8(ref err) => Some(err),
-            Error::Xml(ref err) => Some(err),
             Error::Yaml(ref err) => Some(err),
             _ => None,
         }
@@ -337,12 +328,6 @@ impl From<serde_urlencoded::de::Error> for Error {
 impl From<str::Utf8Error> for Error {
     fn from(err: str::Utf8Error) -> Error {
         Error::Utf8(err)
-    }
-}
-
-impl From<serde_xml::Error> for Error {
-    fn from(err: serde_xml::Error) -> Error {
-        Error::Xml(err)
     }
 }
 
