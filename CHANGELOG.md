@@ -8,8 +8,9 @@ All notable changes to this project will be documented in this file, which is wr
 
 - The `-f,--from` option.
 - The `-t,--to` option.
-- Deserialization of Msgpack format.
-- Serialization to JSON format.
+- Deserialization of the Msgpack format.
+- Serialization to the JSON format.
+- Serialization to the Bincode format.
 
 ### Fixed
 
