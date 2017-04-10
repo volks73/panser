@@ -20,7 +20,6 @@ extern crate toml;
 use byteorder::{ByteOrder, BigEndian, ReadBytesExt};
 use clap::{App, Arg};
 use panser::{Error, FromFormat, Result, ToFormat};
-use serde::Serialize;
 use std::fs::File;
 use std::io::{self, Cursor, ErrorKind, Read, Write};
 use std::str;
@@ -44,35 +43,26 @@ fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFor
             FromFormat::Yaml => serde_yaml::from_slice::<serde_json::Value>(input)?,
         }
     };
-    let mut buf = Vec::new();
-    match to {
-        ToFormat::Bincode => value.serialize(&mut bincode::Serializer::new(&mut buf))?,
-        ToFormat::Bson => unimplemented!(), 
-        ToFormat::Cbor => {
-            buf = serde_cbor::to_vec(&value)?;
-        },
-        ToFormat::Hjson => unimplemented!(),
-        ToFormat::Json => value.serialize(&mut serde_json::Serializer::new(&mut buf))?,
-        ToFormat::Msgpack => {
-            buf = rmp_serde::to_vec(&value)?;
-        },
-        ToFormat::Pickle => value.serialize(&mut serde_pickle::Serializer::new(&mut buf, true))?,
-        ToFormat::Toml => {
-            buf = toml::to_vec(&value)?;
-        },
-        ToFormat::Url => {
-            buf = serde_urlencoded::to_string(&value)?.into_bytes();
-        },
-        ToFormat::Yaml => {
-            buf = serde_yaml::to_vec(&value)?;
-        },
-    }
+    let encoded_data = { 
+        match to {
+            ToFormat::Bincode => bincode::serialize(&value, bincode::Infinite)?,
+            ToFormat::Bson => unimplemented!(), 
+            ToFormat::Cbor => serde_cbor::to_vec(&value)?,
+            ToFormat::Hjson => unimplemented!(),
+            ToFormat::Json => serde_json::to_vec(&value)?,
+            ToFormat::Msgpack => rmp_serde::to_vec(&value)?,
+            ToFormat::Pickle => serde_pickle::to_vec(&value, true)?,
+            ToFormat::Toml => toml::to_vec(&value)?,
+            ToFormat::Url => serde_urlencoded::to_string(&value)?.into_bytes(),
+            ToFormat::Yaml => serde_yaml::to_vec(&value)?,
+        }
+    };
     if framed {
         let mut frame_length = [0; 4];
-        BigEndian::write_u32(&mut frame_length, buf.len() as u32);
+        BigEndian::write_u32(&mut frame_length, encoded_data.len() as u32);
         output.write(&frame_length)?;
     }
-    output.write(&buf)?;
+    output.write(&encoded_data)?;
     output.flush()?;
     Ok(())
 }
