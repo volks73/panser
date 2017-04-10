@@ -24,7 +24,6 @@ pub type Result<T> = result::Result<T, Error>;
 #[derive(Clone, Copy, Debug)]
 pub enum ToFormat {
     Bincode,
-    Bson,
     Cbor,
     Hjson,
     Json,
@@ -39,7 +38,6 @@ impl ToFormat {
     pub fn possible_values() -> Vec<&'static str> {
         vec![
             "Bincode", "bincode", "BINCODE",
-            "Bson", "bson", "BSON",
             "Cbor", "cbor", "CBOR",
             "Hjson", "hjson", "HJSON",
             "Json", "json", "JSON",
@@ -58,7 +56,6 @@ impl FromStr for ToFormat {
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match &*s.to_string().to_lowercase() {
             "bincode" => Ok(ToFormat::Bincode),
-            "bson" => Ok(ToFormat::Bson),
             "cbor" => Ok(ToFormat::Cbor),
             "hjson" => Ok(ToFormat::Hjson),
             "json" => Ok(ToFormat::Json),
@@ -76,7 +73,6 @@ impl fmt::Display for ToFormat {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             ToFormat::Bincode => write!(f, "Bincode"),
-            ToFormat::Bson => write!(f, "BSON"),
             ToFormat::Cbor => write!(f, "CBOR"),
             ToFormat::Hjson => write!(f, "Hjson"),
             ToFormat::Json => write!(f, "JSON"),
@@ -92,7 +88,6 @@ impl fmt::Display for ToFormat {
 #[derive(Clone, Copy, Debug)]
 pub enum FromFormat {
     Bincode,
-    Bson,
     Cbor,
     Envy,
     Hjson,
@@ -109,7 +104,6 @@ impl FromFormat {
     pub fn possible_values() -> Vec<&'static str> {
         vec![
             "Bincode", "bincode", "BINCODE",
-            "Bson", "bson", "BSON",
             "Cbor", "cbor", "CBOR",
             "Envy", "envy", "ENVY",
             "Hjson", "hjson", "HJSON",
@@ -128,7 +122,6 @@ impl fmt::Display for FromFormat {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             FromFormat::Bincode => write!(f, "Bincode"),
-            FromFormat::Bson => write!(f, "BSON"),
             FromFormat::Cbor => write!(f, "CBOR"),
             FromFormat::Envy => write!(f, "Envy"),
             FromFormat::Hjson => write!(f, "Hjson"),
@@ -149,7 +142,6 @@ impl FromStr for FromFormat {
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match &*s.to_string().to_lowercase() {
             "bincode" => Ok(FromFormat::Bincode),
-            "bson" => Ok(FromFormat::Bson),
             "cbor" => Ok(FromFormat::Cbor),
             "envy" => Ok(FromFormat::Envy),
             "hjson" => Ok(FromFormat::Hjson),

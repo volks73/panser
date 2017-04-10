@@ -29,11 +29,12 @@ use std::thread;
 fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFormat, framed: bool) -> Result<()> {
     let value = {
         match from {
-            FromFormat::Bincode => unimplemented!(), // TODO: Change this to an Unsupported format error
-            FromFormat::Bson => unimplemented!(), // TODO: Change this to an Unsupported format error
+            FromFormat::Bincode => bincode::deserialize::<serde_json::Value>(input)?,
             FromFormat::Cbor => serde_cbor::from_slice::<serde_json::Value>(input)?,
             FromFormat::Envy => envy::from_env::<serde_json::Value>()?,
-            FromFormat::Hjson => unimplemented!(), // The serde_hjson library is out-of-date.
+            // Until the Hjson create is updated to work with serde v0.9 or newer, just use the
+            // serde_json crate.
+            FromFormat::Hjson => serde_json::from_slice::<serde_json::Value>(input)?,
             FromFormat::Json => serde_json::from_slice::<serde_json::Value>(input)?,
             FromFormat::Msgpack => rmp_serde::from_slice::<serde_json::Value>(input)?,
             FromFormat::Pickle => serde_pickle::from_slice::<serde_json::Value>(input)?,
@@ -46,9 +47,10 @@ fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFor
     let encoded_data = { 
         match to {
             ToFormat::Bincode => bincode::serialize(&value, bincode::Infinite)?,
-            ToFormat::Bson => unimplemented!(), 
             ToFormat::Cbor => serde_cbor::to_vec(&value)?,
-            ToFormat::Hjson => unimplemented!(),
+            // Until the Hjson crate is updated to work with serde v0.9 or newer, use the
+            // serde-json crate's pretty print for the Hjson format.
+            ToFormat::Hjson => serde_json::to_vec_pretty(&value)?, 
             ToFormat::Json => serde_json::to_vec(&value)?,
             ToFormat::Msgpack => rmp_serde::to_vec(&value)?,
             ToFormat::Pickle => serde_pickle::to_vec(&value, true)?,
@@ -143,7 +145,6 @@ fn main() {
     // TODO: Add interactive (-i) mode, maybe.
     // TODO: Add determining `from` format from file extension if present for input
     // TODO; Add determining `to` format from file extension if present for output
-    // TODO: Add support for other formats
     let matches = App::new("panser")
         .version(crate_version!())
         .about("An application for transcoding serialization formats.") 
@@ -157,7 +158,7 @@ fn main() {
             .help("Prepends the total length of the serialized data as an unsigned 32-bit integer in Big Endian (Network Order).")
             .long("framed-output"))
         .arg(Arg::with_name("from")
-            .help("The input format. [values: Bincode, BSON, CBOR, Envy, Hjson, JSON, Msgpack, Pickle, TOML, URL, XML, YAML]")
+            .help("The input format. [values: Bincode, CBOR, Envy, Hjson, JSON, Msgpack, Pickle, TOML, URL, XML, YAML]")
             .long("from")
             .short("f")
             .hide_possible_values(true)
@@ -170,7 +171,7 @@ fn main() {
             .short("o")
             .takes_value(true))
         .arg(Arg::with_name("to")
-            .help("The output format. [values: Bincode, BSON, CBOR, Hjson, JSON, Msgpack, Pickle, TOML, URL, YAML]")
+            .help("The output format. [values: Bincode, CBOR, Hjson, JSON, Msgpack, Pickle, TOML, URL, YAML]")
             .long("to")
             .short("t")
             .hide_possible_values(true)
