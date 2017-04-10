@@ -65,7 +65,7 @@ fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFor
     }
     output.write(&encoded_data)?;
     if include_newline {
-        output.write(&[b"\n"])?;
+        output.write(&[b'\n'])?;
     }
     output.flush()?;
     Ok(())
