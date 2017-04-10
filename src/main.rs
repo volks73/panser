@@ -11,6 +11,7 @@ extern crate serde_cbor;
 extern crate serde_hjson;
 extern crate serde_json;
 extern crate serde_pickle;
+extern crate serde_urlencoded;
 extern crate serde_yaml;
 extern crate toml;
 
@@ -37,7 +38,7 @@ fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFor
             FromFormat::Pickle => serde_pickle::from_slice::<serde_json::Value>(input)?,
             FromFormat::Redis => unimplemented!(),
             FromFormat::Toml => toml::from_slice::<serde_json::Value>(input)?,
-            FromFormat::Url => unimplemented!(),
+            FromFormat::Url => serde_urlencoded::from_bytes::<serde_json::Value>(input)?,
             FromFormat::Xml => unimplemented!(),
             FromFormat::Yaml => serde_yaml::from_slice::<serde_json::Value>(input)?,
         }
@@ -56,7 +57,9 @@ fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFor
         ToFormat::Toml => {
             buf = toml::to_vec(&value)?;
         },
-        ToFormat::Url => unimplemented!(),
+        ToFormat::Url => {
+            buf = serde_urlencoded::to_string(&value)?.into_bytes();
+        },
         ToFormat::Yaml => {
             buf = serde_yaml::to_vec(&value)?;
         },

@@ -6,6 +6,7 @@ extern crate serde_cbor;
 extern crate serde_hjson;
 extern crate serde_json;
 extern crate serde_pickle;
+extern crate serde_urlencoded;
 extern crate serde_yaml;
 extern crate toml;
 
@@ -181,6 +182,8 @@ pub enum Error {
     TomlDecode(toml::de::Error),
     TomlEncode(toml::ser::Error),
     Utf8(str::Utf8Error),
+    UrlDecode(serde_urlencoded::de::Error),
+    UrlEncode(serde_urlencoded::ser::Error),
     Yaml(serde_yaml::Error),
 }
 
@@ -199,6 +202,8 @@ impl fmt::Display for Error {
             Error::Pickle(ref message) => write!(f, "{}", message),
             Error::TomlDecode(ref message) => write!(f, "{}", message),
             Error::TomlEncode(ref message) => write!(f, "{}", message),
+            Error::UrlDecode(ref message) => write!(f, "{}", message),
+            Error::UrlEncode(ref message) => write!(f, "{}", message),
             Error::Utf8(ref message) => write!(f, "{}", message),
             Error::Yaml(ref message) => write!(f, "{}", message),
         }
@@ -220,6 +225,8 @@ impl StdError for Error {
             Error::Pickle(..) => "Pickle error",
             Error::TomlDecode(..) => "TOML decoding error",
             Error::TomlEncode(..) => "TOML encoding error",
+            Error::UrlDecode(..) => "URL decoding error",
+            Error::UrlEncode(..) => "URL encoding error",
             Error::Utf8(..) => "UTF-8 error",
             Error::Yaml(..) => "YAML error",
         }
@@ -237,6 +244,8 @@ impl StdError for Error {
             Error::Pickle(ref err) => Some(err),
             Error::TomlDecode(ref err) => Some(err),
             Error::TomlEncode(ref err) => Some(err),
+            Error::UrlDecode(ref err) => Some(err),
+            Error::UrlEncode(ref err) => Some(err),
             Error::Utf8(ref err) => Some(err),
             Error::Yaml(ref err) => Some(err),
             _ => None,
@@ -316,6 +325,17 @@ impl From<toml::de::Error> for Error {
     }
 }
 
+impl From<serde_urlencoded::ser::Error> for Error {
+    fn from(err: serde_urlencoded::ser::Error) -> Error {
+        Error::UrlEncode(err)
+    }
+}
+
+impl From<serde_urlencoded::de::Error> for Error {
+    fn from(err: serde_urlencoded::de::Error) -> Error {
+        Error::UrlDecode(err)
+    }
+}
 
 impl From<Box<Any + Send + 'static>> for Error {
     fn from(err: Box<Any + Send + 'static>) -> Error {
