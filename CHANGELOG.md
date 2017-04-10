@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file, which is wr
 
 ### Added
 
+- The `-n,--include-newline` flag.
 - The `-f,--from` option.
 - The `-t,--to` option.
 - Determining the input format from the file extension if a file is given

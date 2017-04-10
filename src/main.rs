@@ -26,7 +26,7 @@ use std::str::{self, FromStr};
 use std::sync::mpsc;
 use std::thread;
 
-fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFormat, framed: bool) -> Result<()> {
+fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFormat, framed: bool, include_newline: bool) -> Result<()> {
     let value = {
         match from {
             FromFormat::Bincode => bincode::deserialize::<serde_json::Value>(input)?,
@@ -64,6 +64,9 @@ fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFor
         output.write(&frame_length)?;
     }
     output.write(&encoded_data)?;
+    if include_newline {
+        output.write(&[b"\n"])?;
+    }
     output.flush()?;
     Ok(())
 }
@@ -104,7 +107,7 @@ fn read<R: Read + Send>(mut reader: R, framed: bool, message_tx: mpsc::Sender<Ve
     Ok(())
 }
 
-fn run(input: Option<&str>, output: Option<&str>, from: Option<FromFormat>, to: Option<ToFormat>, framed_input: bool, framed_output: bool) -> Result<()> {
+fn run(input: Option<&str>, output: Option<&str>, from: Option<FromFormat>, to: Option<ToFormat>, framed_input: bool, framed_output: bool, include_newline: bool) -> Result<()> {
     let (message_tx, message_rx) = mpsc::channel::<Vec<u8>>();
     let mut writer: Box<Write> = {
         if let Some(o) = output {
@@ -123,7 +126,9 @@ fn run(input: Option<&str>, output: Option<&str>, from: Option<FromFormat>, to: 
     let handle = thread::spawn(move || {
         read(reader, framed_input, message_tx).or_else(|e| {
             match e {
-                Error::Eof => Ok(()),
+                Error::Eof => {
+                    Ok(())
+                },
                 _ => Err(e),
             }
         }).unwrap();
@@ -156,8 +161,8 @@ fn run(input: Option<&str>, output: Option<&str>, from: Option<FromFormat>, to: 
                     ToFormat::Msgpack
                 }
             }), 
-            framed_output)?;
-            writer.flush()?;
+            framed_output,
+            include_newline)?;
         } else {
             break;
         }
@@ -187,6 +192,10 @@ fn main() {
             .hide_possible_values(true)
             .possible_values(&FromFormat::possible_values())
             .takes_value(true))
+        .arg(Arg::with_name("include-newline")
+            .help("Writes the newline character (0x0A) to output at the end of serializing a message.")
+            .long("include-newline")
+            .short("n"))
         .arg(Arg::with_name("output")
             .help("A file to write the output instead of writing to STDOUT. If a file extension exists, then it is used to determined the format of the output serialized data. If a file extension does not exist, then the `-t,--to` option should be used or the MessagePack format is assumed.")
             .long("output")
@@ -206,7 +215,8 @@ fn main() {
         value_t!(matches, "from", FromFormat).ok(),
         value_t!(matches, "to", ToFormat).ok(),
         matches.is_present("framed-input"),
-        matches.is_present("framed-output")
+        matches.is_present("framed-output"),
+        matches.is_present("include-newline")
     );
     match result {
         Ok(_) => {
