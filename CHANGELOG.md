@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+### Added
+
+- The `-f,--from` option.
+- The `-t,--to` option.
+- Deserialization of Msgpack format.
+- Serialization to JSON format.
+
+### Fixed
+
+- Panic when reading framed input and EOF reached.
+
 ## [0.0.3] - 2017-04-09
 
 ### Added

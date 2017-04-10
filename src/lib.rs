@@ -1,4 +1,5 @@
 // Copyright (C) 2017 Christopher R. Field. All rights reserved.
+extern crate serde;
 extern crate serde_json;
 extern crate rmp_serde;
 

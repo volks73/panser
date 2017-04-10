@@ -11,13 +11,14 @@ extern crate rmp_serde;
 use byteorder::{ByteOrder, BigEndian, ReadBytesExt};
 use clap::{App, Arg};
 use panser::{Error, Result};
-use serde::ser::Serialize;
+use serde::Serialize;
 use std::fs::File;
 use std::io::{self, Cursor, ErrorKind, Read, Write};
 use std::str::{self, FromStr};
 use std::sync::mpsc;
 use std::thread;
 
+#[derive(Clone, Copy, Debug)]
 enum ToFormat {
     Bincode,
     Bson,
@@ -72,6 +73,7 @@ impl FromStr for ToFormat {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
 enum FromFormat {
     Bincode,
     Bson,
@@ -138,11 +140,37 @@ impl FromStr for FromFormat {
     }
 }
 
-
-fn transcode<W: Write>(input: &[u8], output: &mut W, framed: bool) -> Result<()> {
-    let value: serde_json::Value = serde_json::from_slice(input)?;
+fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFormat, framed: bool) -> Result<()> {
+    let value = {
+        match from {
+            FromFormat::Bincode => unimplemented!(),
+            FromFormat::Bson => unimplemented!(),
+            FromFormat::Cbor => unimplemented!(),
+            FromFormat::Envy => unimplemented!(),
+            FromFormat::Hjson => unimplemented!(),
+            FromFormat::Json => serde_json::from_slice::<serde_json::Value>(input)?,
+            FromFormat::Msgpack => rmp_serde::from_slice::<serde_json::Value>(input)?,
+            FromFormat::Pickle => unimplemented!(),
+            FromFormat::Redis => unimplemented!(),
+            FromFormat::Toml => unimplemented!(),
+            FromFormat::Url => unimplemented!(),
+            FromFormat::Xml => unimplemented!(),
+            FromFormat::Yaml => unimplemented!(),
+        }
+    };
     let mut buf = Vec::new();
-    value.serialize(&mut rmp_serde::Serializer::new(&mut buf))?;
+    match to {
+        ToFormat::Bincode => unimplemented!(),
+        ToFormat::Bson => unimplemented!(),
+        ToFormat::Cbor => unimplemented!(),
+        ToFormat::Hjson => unimplemented!(),
+        ToFormat::Json => value.serialize(&mut serde_json::Serializer::new(&mut buf))?,
+        ToFormat::Msgpack => value.serialize(&mut rmp_serde::Serializer::new(&mut buf))?,
+        ToFormat::Pickle => unimplemented!(),
+        ToFormat::Toml => unimplemented!(),
+        ToFormat::Url => unimplemented!(),
+        ToFormat::Yaml => unimplemented!(),
+    }
     if framed {
         let mut frame_length = [0; 4];
         BigEndian::write_u32(&mut frame_length, buf.len() as u32);
@@ -165,7 +193,7 @@ fn read<R: Read + Send>(mut reader: R, framed: bool, message_tx: mpsc::Sender<Ve
             })?;
             let mut frame_length_cursor = Cursor::new(frame_length_buf);
             let frame_length = frame_length_cursor.read_u32::<BigEndian>()?;
-            let mut buf = Vec::with_capacity(frame_length as usize);
+            let mut buf = vec![0; frame_length as usize];
             reader.read_exact(&mut buf).map_err(|e| {
                 match e.kind() {
                     ErrorKind::UnexpectedEof => Error::Eof,
@@ -177,7 +205,6 @@ fn read<R: Read + Send>(mut reader: R, framed: bool, message_tx: mpsc::Sender<Ve
             let mut buf = Vec::new();
             let bytes_count = reader.read_to_end(&mut buf)?;
             if bytes_count > 0 {
-                buf.pop(); // Remove trailing newline (0x0A) character
                 if !buf.is_empty() {
                     message_tx.send(buf).unwrap();
                 }
@@ -190,7 +217,7 @@ fn read<R: Read + Send>(mut reader: R, framed: bool, message_tx: mpsc::Sender<Ve
     Ok(())
 }
 
-fn run(input: Option<&str>, output: Option<&str>, framed_input: bool, framed_output: bool) -> Result<()> {
+fn run(input: Option<&str>, output: Option<&str>, from: FromFormat, to: ToFormat, framed_input: bool, framed_output: bool) -> Result<()> {
     let (message_tx, message_rx) = mpsc::channel::<Vec<u8>>();
     let mut writer: Box<Write> = {
         if let Some(o) = output {
@@ -207,7 +234,7 @@ fn run(input: Option<&str>, output: Option<&str>, framed_input: bool, framed_out
         }
     };
     let handle = thread::spawn(move || {
-        read(reader, framed_input, message_tx).map_err(|e| {
+        read(reader, framed_input, message_tx).or_else(|e| {
             match e {
                 Error::Eof => Ok(()),
                 _ => Err(e),
@@ -216,7 +243,7 @@ fn run(input: Option<&str>, output: Option<&str>, framed_input: bool, framed_out
     });
     loop {
         if let Ok(input) = message_rx.recv() {
-            transcode(&input, &mut writer, framed_output)?;
+            transcode(&input, &mut writer, from, to, framed_output)?;
             writer.flush()?;
         } else {
             break;
@@ -230,8 +257,6 @@ fn main() {
     // TODO: Add interactive (-i) mode, maybe.
     // TODO: Add determining `from` format from file extension if present for input
     // TODO; Add determining `to` format from file extension if present for output
-    // TODO: Add `-f,--from` option
-    // TODO: Add `-t,--to` option
     // TODO: Add support for other formats
     let matches = App::new("panser")
         .version(crate_version!())
@@ -269,6 +294,8 @@ fn main() {
     let result = run(
         matches.value_of("FILE"), 
         matches.value_of("output"), 
+        value_t!(matches, "from", FromFormat).unwrap_or(FromFormat::Json),
+        value_t!(matches, "to", ToFormat).unwrap_or(ToFormat::Msgpack),
         matches.is_present("framed-input"),
         matches.is_present("framed-output")
     );
