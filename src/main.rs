@@ -172,7 +172,6 @@ fn run(input: Option<&str>, output: Option<&str>, from: Option<FromFormat>, to: 
 }
 
 fn main() {
-    // TODO: Add interactive (-i) mode, maybe.
     let matches = App::new("panser")
         .version(crate_version!())
         .about("An application for transcoding serialization formats.") 

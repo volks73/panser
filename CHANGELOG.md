@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+## [0.0.4] - 2017-04-10
+
 ### Added
 
 - The `-n,--include-newline` flag.
