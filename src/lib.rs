@@ -1,8 +1,10 @@
 // Copyright (C) 2017 Christopher R. Field. All rights reserved.
 extern crate bincode;
-extern crate serde;
-extern crate serde_json;
 extern crate rmp_serde;
+extern crate serde;
+extern crate serde_hjson;
+extern crate serde_json;
+extern crate toml;
 
 use std::any::Any;
 use std::error::Error as StdError;
@@ -166,10 +168,13 @@ pub enum Error {
     Bincode(bincode::Error),
     Eof,
     Generic(String),
+    Hjson(serde_hjson::Error),
     Io(io::Error),
     Json(serde_json::Error),
     MsgpackDecode(rmp_serde::decode::Error),
     MsgpackEncode(rmp_serde::encode::Error),
+    TomlDecode(toml::de::Error),
+    TomlEncode(toml::ser::Error),
     Utf8(str::Utf8Error),
 }
 
@@ -179,10 +184,13 @@ impl fmt::Display for Error {
             Error::Bincode(ref message) => write!(f, "{}", message),
             Error::Eof => write!(f, "End of file reached"),
             Error::Generic(ref message) => write!(f, "{}", message),
+            Error::Hjson(ref message) => write!(f, "{}", message),
             Error::Io(ref message) => write!(f, "{}", message),
             Error::Json(ref message) => write!(f, "{}", message),
             Error::MsgpackDecode(ref message) => write!(f, "{}", message),
             Error::MsgpackEncode(ref message) => write!(f, "{}", message),
+            Error::TomlDecode(ref message) => write!(f, "{}", message),
+            Error::TomlEncode(ref message) => write!(f, "{}", message),
             Error::Utf8(ref message) => write!(f, "{}", message),
         }
     }
@@ -194,10 +202,13 @@ impl StdError for Error {
             Error::Bincode(..) => "Bincode error",
             Error::Eof => "EOF error",
             Error::Generic(..) => "Generic error",
+            Error::Hjson(..) => "Hjson error",
             Error::Io(..) => "IO error",
             Error::Json(..) => "JSON error",
             Error::MsgpackDecode(..) => "MessagePack decoding error",
             Error::MsgpackEncode(..) => "MessagePack encoding error",
+            Error::TomlDecode(..) => "TOML decoding error",
+            Error::TomlEncode(..) => "TOML encoding error",
             Error::Utf8(..) => "UTF-8 error",
         }
     }
@@ -206,9 +217,12 @@ impl StdError for Error {
         match *self {
             Error::Bincode(ref err) => Some(err),
             Error::Io(ref err) => Some(err),
+            Error::Hjson(ref err) => Some(err),
             Error::Json(ref err) => Some(err),
             Error::MsgpackDecode(ref err) => Some(err),
             Error::MsgpackEncode(ref err) => Some(err),
+            Error::TomlDecode(ref err) => Some(err),
+            Error::TomlEncode(ref err) => Some(err),
             Error::Utf8(ref err) => Some(err),
             _ => None,
         }
@@ -250,6 +264,25 @@ impl From<bincode::Error> for Error {
         Error::Bincode(err)
     }
 }
+
+impl From<serde_hjson::Error> for Error {
+    fn from(err: serde_hjson::Error) -> Error {
+        Error::Hjson(err)
+    }
+}
+
+impl From<toml::ser::Error> for Error {
+    fn from(err: toml::ser::Error) -> Error {
+        Error::TomlEncode(err)
+    }
+}
+
+impl From<toml::de::Error> for Error {
+    fn from(err: toml::de::Error) -> Error {
+        Error::TomlDecode(err)
+    }
+}
+
 
 impl From<Box<Any + Send + 'static>> for Error {
     fn from(err: Box<Any + Send + 'static>) -> Error {

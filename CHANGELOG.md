@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file, which is wr
 
 - The `-f,--from` option.
 - The `-t,--to` option.
+- Case insensitivity to the `-f,--from` option.
+- Case insensitivity to the `-t,--to` option
+- Deserialization of the TOML format.
+- Serialization of the TOML format.
 - Deserialization of the Msgpack format.
 - Serialization to the JSON format.
 - Serialization to the Bincode format.

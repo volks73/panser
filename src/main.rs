@@ -5,9 +5,10 @@ extern crate clap;
 extern crate bincode;
 extern crate byteorder;
 extern crate panser;
+extern crate rmp_serde;
 extern crate serde;
 extern crate serde_json;
-extern crate rmp_serde;
+extern crate toml;
 
 use byteorder::{ByteOrder, BigEndian, ReadBytesExt};
 use clap::{App, Arg};
@@ -31,7 +32,7 @@ fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFor
             FromFormat::Msgpack => rmp_serde::from_slice::<serde_json::Value>(input)?,
             FromFormat::Pickle => unimplemented!(),
             FromFormat::Redis => unimplemented!(),
-            FromFormat::Toml => unimplemented!(),
+            FromFormat::Toml => toml::from_slice::<serde_json::Value>(input)?,
             FromFormat::Url => unimplemented!(),
             FromFormat::Xml => unimplemented!(),
             FromFormat::Yaml => unimplemented!(),
@@ -46,7 +47,9 @@ fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFor
         ToFormat::Json => value.serialize(&mut serde_json::Serializer::new(&mut buf))?,
         ToFormat::Msgpack => value.serialize(&mut rmp_serde::Serializer::new(&mut buf))?,
         ToFormat::Pickle => unimplemented!(),
-        ToFormat::Toml => unimplemented!(),
+        ToFormat::Toml => {
+            buf = toml::ser::to_vec(&value)?;
+        }
         ToFormat::Url => unimplemented!(),
         ToFormat::Yaml => unimplemented!(),
     }
@@ -133,8 +136,6 @@ fn run(input: Option<&str>, output: Option<&str>, from: FromFormat, to: ToFormat
 }
 
 fn main() {
-    // TODO: Add case insensitivity to To format.
-    // TODO: Add case insensitivity to From format.
     // TODO: Add interactive (-i) mode, maybe.
     // TODO: Add determining `from` format from file extension if present for input
     // TODO; Add determining `to` format from file extension if present for output

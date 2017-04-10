@@ -9,4 +9,7 @@ byteorder = "1"
 clap = "2.23"
 serde = "0.9"
 serde_json = "0.9"
+serde-hjson = "0.8.1"
+toml = "0.3.2"
 rmp-serde = "0.12"
+
