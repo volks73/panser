@@ -4,6 +4,7 @@ version = "0.0.3"
 authors = ["Christopher Field <cfield2@gmail.com>"]
 
 [dependencies]
+bincode = "0.7"
 byteorder = "1"
 clap = "2.23"
 serde = "0.9"

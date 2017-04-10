@@ -1,4 +1,5 @@
 // Copyright (C) 2017 Christopher R. Field. All rights reserved.
+extern crate bincode;
 extern crate serde;
 extern crate serde_json;
 extern crate rmp_serde;
@@ -14,6 +15,7 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
+    Bincode(bincode::Error),
     Eof,
     Generic(String),
     Io(io::Error),
@@ -26,6 +28,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            Error::Bincode(ref message) => write!(f, "{}", message),
             Error::Eof => write!(f, "End of file reached"),
             Error::Generic(ref message) => write!(f, "{}", message),
             Error::Io(ref message) => write!(f, "{}", message),
@@ -40,6 +43,7 @@ impl fmt::Display for Error {
 impl StdError for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::Bincode(..) => "Bincode error",
             Error::Eof => "EOF error",
             Error::Generic(..) => "Generic error",
             Error::Io(..) => "IO error",
@@ -52,6 +56,7 @@ impl StdError for Error {
 
     fn cause(&self) -> Option<&StdError> {
         match *self {
+            Error::Bincode(ref err) => Some(err),
             Error::Io(ref err) => Some(err),
             Error::Json(ref err) => Some(err),
             Error::MsgpackDecode(ref err) => Some(err),
@@ -89,6 +94,12 @@ impl From<rmp_serde::encode::Error> for Error {
 impl From<rmp_serde::decode::Error> for Error {
     fn from(err: rmp_serde::decode::Error) -> Error {
         Error::MsgpackDecode(err)
+    }
+}
+
+impl From<bincode::Error> for Error {
+    fn from(err: bincode::Error) -> Error {
+        Error::Bincode(err)
     }
 }
 

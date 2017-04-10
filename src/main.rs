@@ -2,6 +2,7 @@
 
 #[macro_use]
 extern crate clap;
+extern crate bincode;
 extern crate byteorder;
 extern crate panser;
 extern crate serde;
@@ -18,6 +19,8 @@ use std::str::{self, FromStr};
 use std::sync::mpsc;
 use std::thread;
 
+// TODO: Move to lib.rs?
+// TODO: Add `possible_values` method, which returns a slice of strings that are the possible values.
 #[derive(Clone, Copy, Debug)]
 enum ToFormat {
     Bincode,
@@ -73,6 +76,8 @@ impl FromStr for ToFormat {
     }
 }
 
+// TODO: Move to lib.rs?
+// TODO: Add `possible_values` method, which returns a slice of strings that are the possible values.
 #[derive(Clone, Copy, Debug)]
 enum FromFormat {
     Bincode,
@@ -160,7 +165,7 @@ fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFor
     };
     let mut buf = Vec::new();
     match to {
-        ToFormat::Bincode => unimplemented!(),
+        ToFormat::Bincode => value.serialize(&mut bincode::Serializer::new(&mut buf))?,
         ToFormat::Bson => unimplemented!(),
         ToFormat::Cbor => unimplemented!(),
         ToFormat::Hjson => unimplemented!(),
@@ -254,6 +259,8 @@ fn run(input: Option<&str>, output: Option<&str>, from: FromFormat, to: ToFormat
 }
 
 fn main() {
+    // TODO: Add case insensitivity to To format.
+    // TODO: Add case insensitivity to From format.
     // TODO: Add interactive (-i) mode, maybe.
     // TODO: Add determining `from` format from file extension if present for input
     // TODO; Add determining `to` format from file extension if present for output
