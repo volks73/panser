@@ -1,4 +1,4 @@
-# Panser: A command line application for deserializing and serializing data #
+# Panser: A command line application for (de)serializing data #
 
 Copyright (C) 2017 Christopher R. Field. All rights reserved.
 
