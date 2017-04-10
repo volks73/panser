@@ -13,7 +13,6 @@ use std::result;
 
 pub type Result<T> = result::Result<T, Error>;
 
-// TODO: Add `possible_values` method, which returns a slice of strings that are the possible values.
 #[derive(Clone, Copy, Debug)]
 pub enum ToFormat {
     Bincode,
@@ -28,48 +27,60 @@ pub enum ToFormat {
     Yaml,
 }
 
+impl ToFormat {
+    pub fn possible_values() -> Vec<&'static str> {
+        vec![
+            "Bincode", "bincode", "BINCODE",
+            "Bson", "bson", "BSON",
+            "Cbor", "cbor", "CBOR",
+            "Hjson", "hjson", "HJSON",
+            "Json", "json", "JSON",
+            "Msgpack", "msgpack", "MSGPACK",
+            "Pickle", "pickle", "PICKLE",
+            "Toml", "toml", "TOML",
+            "Url", "url", "URL",
+            "Yaml", "yaml", "YAML",
+        ]
+    }
+}
+
 impl FromStr for ToFormat {
     type Err = &'static str;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        match s {
-            "Bincode" => Ok(ToFormat::Bincode),
+        match &*s.to_string().to_lowercase() {
             "bincode" => Ok(ToFormat::Bincode),
-            "BINCODE" => Ok(ToFormat::Bincode),
-            "Bson" => Ok(ToFormat::Bson),
             "bson" => Ok(ToFormat::Bson),
-            "BSON" => Ok(ToFormat::Bson),
-            "Cbor" => Ok(ToFormat::Cbor),
             "cbor" => Ok(ToFormat::Cbor),
-            "CBOR" => Ok(ToFormat::Cbor),
-            "Hjson" => Ok(ToFormat::Hjson),
             "hjson" => Ok(ToFormat::Hjson),
-            "HJSON" => Ok(ToFormat::Hjson),
-            "Json" => Ok(ToFormat::Json),
             "json" => Ok(ToFormat::Json),
-            "JSON" => Ok(ToFormat::Json),
-            "Msgpack" => Ok(ToFormat::Msgpack),
             "msgpack" => Ok(ToFormat::Msgpack),
-            "MSGPACK" => Ok(ToFormat::Msgpack),
-            "MessagePack" => Ok(ToFormat::Msgpack),
-            "Pickle" => Ok(ToFormat::Pickle),
             "pickle" => Ok(ToFormat::Pickle),
-            "PICKLE" => Ok(ToFormat::Pickle),
-            "Toml" => Ok(ToFormat::Toml),
             "toml" => Ok(ToFormat::Toml),
-            "TOML" => Ok(ToFormat::Toml),
-            "Url" => Ok(ToFormat::Url),
             "url" => Ok(ToFormat::Url),
-            "URL" => Ok(ToFormat::Url),
-            "Yaml" => Ok(ToFormat::Yaml),
             "yaml" => Ok(ToFormat::Yaml),
-            "YAML" => Ok(ToFormat::Yaml),
             _ => Err("No Match")
         }
     }
 }
 
-// TODO: Add `possible_values` method, which returns a slice of strings that are the possible values.
+impl fmt::Display for ToFormat {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            ToFormat::Bincode => write!(f, "Bincode"),
+            ToFormat::Bson => write!(f, "BSON"),
+            ToFormat::Cbor => write!(f, "CBOR"),
+            ToFormat::Hjson => write!(f, "Hjson"),
+            ToFormat::Json => write!(f, "JSON"),
+            ToFormat::Msgpack => write!(f, "Msgpack"),
+            ToFormat::Pickle => write!(f, "Pickle"),
+            ToFormat::Toml => write!(f, "TOML"),
+            ToFormat::Url => write!(f, "URL"),
+            ToFormat::Yaml => write!(f, "YAML"),
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum FromFormat {
     Bincode,
@@ -87,56 +98,68 @@ pub enum FromFormat {
     Yaml,
 }
 
-impl FromStr for FromFormat {
-    type Err = &'static str;
+impl FromFormat {
+    pub fn possible_values() -> Vec<&'static str> {
+        vec![
+            "Bincode", "bincode", "BINCODE",
+            "Bson", "bson", "BSON",
+            "Cbor", "cbor", "CBOR",
+            "Envy", "envy", "ENVY",
+            "Hjson", "hjson", "HJSON",
+            "Json", "json", "JSON",
+            "Msgpack", "msgpack", "MSGPACK",
+            "Pickle", "pickle", "PICKLE",
+            "Redis", "redis", "REDIS",
+            "Toml", "toml", "TOML",
+            "Url", "url", "URL",
+            "Xml", "xml", "XML",
+            "Yaml", "yaml", "YAML",
+        ]
+    }
+}
 
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        match s {
-            "Bincode" => Ok(FromFormat::Bincode),
-            "bincode" => Ok(FromFormat::Bincode),
-            "BINCODE" => Ok(FromFormat::Bincode),
-            "Bson" => Ok(FromFormat::Bson),
-            "bson" => Ok(FromFormat::Bson),
-            "BSON" => Ok(FromFormat::Bson),
-            "Cbor" => Ok(FromFormat::Cbor),
-            "cbor" => Ok(FromFormat::Cbor),
-            "CBOR" => Ok(FromFormat::Cbor),
-            "Envy" => Ok(FromFormat::Envy),
-            "envy" => Ok(FromFormat::Envy),
-            "ENVY" => Ok(FromFormat::Envy),
-            "Hjson" => Ok(FromFormat::Hjson),
-            "hjson" => Ok(FromFormat::Hjson),
-            "HJSON" => Ok(FromFormat::Hjson),
-            "Json" => Ok(FromFormat::Json),
-            "json" => Ok(FromFormat::Json),
-            "JSON" => Ok(FromFormat::Json),
-            "Msgpack" => Ok(FromFormat::Msgpack),
-            "msgpack" => Ok(FromFormat::Msgpack),
-            "MSGPACK" => Ok(FromFormat::Msgpack),
-            "MessagePack" => Ok(FromFormat::Msgpack),
-            "Pickle" => Ok(FromFormat::Pickle),
-            "pickle" => Ok(FromFormat::Pickle),
-            "PICKLE" => Ok(FromFormat::Pickle),
-            "Redis" => Ok(FromFormat::Redis),
-            "redis" => Ok(FromFormat::Redis),
-            "REDIS" => Ok(FromFormat::Redis),
-            "Toml" => Ok(FromFormat::Toml),
-            "toml" => Ok(FromFormat::Toml),
-            "TOML" => Ok(FromFormat::Toml),
-            "Url" => Ok(FromFormat::Url),
-            "url" => Ok(FromFormat::Url),
-            "URL" => Ok(FromFormat::Url),
-            "Xml" => Ok(FromFormat::Xml),
-            "xml" => Ok(FromFormat::Xml),
-            "XML" => Ok(FromFormat::Xml),
-            "Yaml" => Ok(FromFormat::Yaml),
-            "yaml" => Ok(FromFormat::Yaml),
-            "YAML" => Ok(FromFormat::Yaml),
-            _ => Err("No Match")
+impl fmt::Display for FromFormat {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            FromFormat::Bincode => write!(f, "Bincode"),
+            FromFormat::Bson => write!(f, "BSON"),
+            FromFormat::Cbor => write!(f, "CBOR"),
+            FromFormat::Envy => write!(f, "Envy"),
+            FromFormat::Hjson => write!(f, "Hjson"),
+            FromFormat::Json => write!(f, "JSON"),
+            FromFormat::Msgpack => write!(f, "Msgpack"),
+            FromFormat::Pickle => write!(f, "Pickle"),
+            FromFormat::Redis => write!(f, "Redis"),
+            FromFormat::Toml => write!(f, "TOML"),
+            FromFormat::Url => write!(f, "URL"),
+            FromFormat::Xml => write!(f, "XML"),
+            FromFormat::Yaml => write!(f, "YAML"),
         }
     }
 }
 
+impl FromStr for FromFormat {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match &*s.to_string().to_lowercase() {
+            "bincode" => Ok(FromFormat::Bincode),
+            "bson" => Ok(FromFormat::Bson),
+            "cbor" => Ok(FromFormat::Cbor),
+            "envy" => Ok(FromFormat::Envy),
+            "hjson" => Ok(FromFormat::Hjson),
+            "json" => Ok(FromFormat::Json),
+            "msgpack" => Ok(FromFormat::Msgpack),
+            "pickle" => Ok(FromFormat::Pickle),
+            "redis" => Ok(FromFormat::Redis),
+            "toml" => Ok(FromFormat::Toml),
+            "url" => Ok(FromFormat::Url),
+            "xml" => Ok(FromFormat::Xml),
+            "yaml" => Ok(FromFormat::Yaml),
+            _ => Err("No Match")
+        }
+    }
+}
 
 #[derive(Debug)]
 pub enum Error {
