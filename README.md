@@ -6,7 +6,52 @@ This file is written in ASCII-encoded plain text using the [Github Flavored Mark
 
 ## What is Panser? ##
 
-The Panser project is a Command-Line Interface (CLI) application for deserializing and serializing data formats in a UNIX pipe-friendly manner. The project is primarily written in the [Rust](http://www.rust-lang.org) programming language. The idea is to have a single application for reading in data in one format on STDIN and writing the same data but in a different format to STDOUT. It is possible to read data from a file and write into a file, but application is focused on creating streams of data that can be piped into a socket, such as a TCP connection or UDP socket. A primary motivator for the application is to read in [JSON](http://www.json.org/) data and output a binary format, such as [MessagePack](http://msgpack.org/index.html), which could be streamed to TCP connection. The reverse is also a desired goal, reading in MessagePack data (binary, machine-readable) and transcoding it to JSON (text, human-readable). The application should aid in the development of network-focused Application Programming Interfaces (APIs) that use binary data.
+The Panser project is a Command-Line Interface (CLI) application for (de)serializing data formats in a UNIX, pipe-friendly manner. The project is primarily written in the [Rust](http://www.rust-lang.org) programming language. The idea is to have a single application for reading data in one format on STDIN and writing the same data but in a different format to STDOUT. It is possible to read data from a file and write to a file, but the application is focused on creating streams of data that can be piped into a socket, such as a TCP stream. The primary motivator for the application is to read [JSON](http://www.json.org/) data and output to the [MessagePack](http://msgpack.org/index.html) format which could be used with a TCP stream to build a low-level Application Programming Interface (API) for a network-enabled application. The reverse is also a desired goal, reading in MessagePack data (binary, machine-readable) and transcoding it to JSON (text, human-readable).
+
+After accomplishing the primary goal of transcoding between JSON and MessagePack (Msgpack) formats, additional formats were gradually added using the [serde](https://github.com/serde-rs/serde) project and related libraries. Almost all of the formats listed in the [Data Formats](https://serde.rs/#data-formats) section of the [Overview](https://serde.rs/) for the serde project are implemented. The intention is to add more formats as more crates are developed using the serde framework.
+
+## Usage ##
+
+The contents of the `-h,--help` flag.
+
+```text
+USAGE:
+    panser [FLAGS] [OPTIONS] [FILE]
+
+FLAGS:
+        --framed-input       Indicates the first four bytes of the input is an
+                             unsigned 32-bit integer in Big Endian (Network
+                             Order) indicating the total length of the
+                             serialized data.
+        --framed-output      Prepends the total length of the serialized data
+                             as an unsigned 32-bit integer in Big Endian
+                             (Network Order).
+    -h, --help               Prints help information
+    -n, --include-newline    Writes the newline character (0x0A) to output at
+                             the end of serializing a message.
+    -V, --version            Prints version information
+
+OPTIONS:
+    -f, --from <from>        The input format. [values: Bincode, CBOR, Envy,
+                             Hjson, JSON, Msgpack, Pickle, TOML, URL, YAML]
+                             [default: JSON]
+    -o, --output <output>    A file to write the output instead of writing to
+                             STDOUT. If a file extension exists, then it is
+                             used to determined the format of the output
+                             serialized data. If a file extension does not
+                             exist, then the `-t,--to` option should be used or
+                             the MessagePack format is assumed.
+    -t, --to <to>            The output format. [values: Bincode, CBOR, Hjson,
+                             JSON, Msgpack, Pickle, TOML, URL, YAML] [default:
+                             Msgpack]
+
+ARGS:
+    <FILE>    A file to read as input instead of reading from STDIN. If a file
+              extension exists, then it is used to determine the format of the
+              serialized data contained within the file. If a file extension
+              does not exist, then the '-f,--from' option should be used or
+              JSON is assumed.
+```
 
 ## Build ##
 

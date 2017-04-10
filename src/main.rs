@@ -185,7 +185,7 @@ fn main() {
             .help("Prepends the total length of the serialized data as an unsigned 32-bit integer in Big Endian (Network Order).")
             .long("framed-output"))
         .arg(Arg::with_name("from")
-            .help("The input format. [values: Bincode, CBOR, Envy, Hjson, JSON, Msgpack, Pickle, TOML, URL, XML, YAML] [default: JSON]")
+            .help("The input format. [values: Bincode, CBOR, Envy, Hjson, JSON, Msgpack, Pickle, TOML, URL, YAML] [default: JSON]")
             .long("from")
             .short("f")
             .hide_possible_values(true)
