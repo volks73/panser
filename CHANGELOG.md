@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+### Changed
+
+- The organization to have the functionality available in the library.
+
 ## [0.1.0] - 2017-04-10
 
 ### Added

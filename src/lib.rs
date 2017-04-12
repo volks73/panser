@@ -1,5 +1,6 @@
-// Copyright (C) 2017 Christopher R. Field. All rights reserved.
+// Copyright (c) 2017 Christopher R. Field. All rights reserved.
 extern crate bincode;
+extern crate byteorder;
 extern crate envy;
 extern crate rmp_serde;
 extern crate serde;
@@ -17,6 +18,11 @@ use std::fmt;
 use std::io;
 use std::str::{self, FromStr};
 use std::result;
+
+pub use self::panser::transcode;
+pub use self::panser::run;
+
+mod panser;
 
 pub type Result<T> = result::Result<T, Error>;
 
