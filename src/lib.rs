@@ -179,6 +179,30 @@ pub enum Error {
     Yaml(serde_yaml::Error),
 }
 
+impl Error {
+    pub fn code(&self) -> i32 {
+        match *self {
+            Error::Bincode(..) => 1,
+            Error::Cbor(..) => 2,
+            Error::Envy(..) => 3,
+            Error::Eof => 0, // Not actually an error
+            Error::Generic(..) => 4,
+            Error::Hjson(..) => 5,
+            Error::Io(..) => 6,
+            Error::Json(..) => 7,
+            Error::MsgpackDecode(..) => 8,
+            Error::MsgpackEncode(..) => 9,
+            Error::Pickle(..) => 10,
+            Error::TomlDecode(..) => 11,
+            Error::TomlEncode(..) => 12,
+            Error::Utf8(..) => 13,
+            Error::UrlDecode(..) => 14,
+            Error::UrlEncode(..) => 15,
+            Error::Yaml(..) => 16,
+        }
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {

@@ -1,5 +1,34 @@
 // Copyright (c) 2017 Christopher R. Field. All rights reserved.
 
+//! `panser` - A (de)serialization tool
+//!
+//! Parses command line flags and options and runs transcoding from one serialization format to
+//! another.
+//!
+//! # Examples
+//!
+//! # Exit Codes
+//!
+//! | Code | Reason                                             |
+//! |------|----------------------------------------------------|
+//! | 0    | Success, no error                                  |
+//! | 1    | Failure, error transcoding the Bincode format      |
+//! | 2    | Failure, error transcoding the CBOR format         |
+//! | 3    | Failure, error deserializing environment variables |
+//! | 4    | Failure, generic error                             |
+//! | 5    | Failure, error transcoding the Hjson format        |
+//! | 6    | Failure, Input/Output (IO)                         |
+//! | 7    | Failure, error transcoding the JSON format         |
+//! | 8    | Failure, error decoding the MessagePack format     |
+//! | 9    | Failure, error encoding the MessagePack format     |
+//! | 10   | Failure, error transcoding the Pickle format       |
+//! | 11   | Failure, error decoding the TOML format            |
+//! | 12   | Failure, error encoding the TOML format            |
+//! | 13   | Failure, error with UTF-8 encoding                 |
+//! | 14   | Failure, error decoding the URL format             |
+//! | 15   | Failure, error encoding the URL format             |
+//! | 16   | Failure, error transcoding the YAML format         |
+
 #[macro_use]
 extern crate clap;
 extern crate panser;
@@ -8,6 +37,8 @@ use clap::{App, Arg};
 use panser::{FromFormat, ToFormat};
 use std::io::Write;
 
+/// The main entry point of the application. Parses command line options and starts the main
+/// program.
 fn main() {
     let matches = App::new("panser")
         .version(crate_version!())
@@ -60,7 +91,7 @@ fn main() {
         },
         Err(e) => {
             writeln!(&mut std::io::stderr(), "{}", e).expect("Writing to STDERR");
-            std::process::exit(1);
+            std::process::exit(e.code());
         }
     }
 }
