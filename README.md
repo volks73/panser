@@ -6,7 +6,7 @@ This file is written in ASCII-encoded plain text using the [Github Flavored Mark
 
 ## What is Panser? ##
 
-The Panser project is a Command-Line Interface (CLI) application for (de)serializing data formats in a UNIX, pipe-friendly manner. The project is primarily written in the [Rust](http://www.rust-lang.org) programming language. The idea is to have a single application for reading data in one format on STDIN and writing the same data but in a different format to STDOUT. It is possible to read data from a file and write to a file, but the application is focused on creating streams of data that can be piped into a socket, such as a TCP stream. The primary motivator for the application is to read [JSON](http://www.json.org/) data and output to the [MessagePack](http://msgpack.org/index.html) format which could be used with a TCP stream to build a low-level Application Programming Interface (API) for a network-enabled application. The reverse is also a desired goal, reading in MessagePack data (binary, machine-readable) and transcoding it to JSON (text, human-readable).
+The Panser project is a Command-Line Interface (CLI) application for (de)serializing data formats in a UNIX, pipe-friendly manner. The project is primarily written in the [Rust](http://www.rust-lang.org) programming language. The idea is to have a single application for reading data in one format on stdin and writing the same data but in a different format to stdout. It is possible to read data from a file and write to a file, but the application is focused on creating streams of data that can be piped into a socket, such as a TCP stream. The primary motivator for the application is to read [JSON](http://www.json.org/) data and output to the [MessagePack](http://msgpack.org/index.html) format which could be used with a TCP stream to build a low-level Application Programming Interface (API) for a network-enabled application. The reverse is also a desired goal, reading in MessagePack data (binary, machine-readable) and transcoding it to JSON (text, human-readable).
 
 After accomplishing the primary goal of transcoding between JSON and MessagePack (Msgpack) formats, additional formats were gradually added using the [serde](https://github.com/serde-rs/serde) project and related libraries. Almost all of the formats listed in the [Data Formats](https://serde.rs/#data-formats) section of the [Overview](https://serde.rs/) for the serde project are implemented. The intention is to add more formats as more crates are developed using the serde framework.
 
@@ -14,7 +14,7 @@ After accomplishing the primary goal of transcoding between JSON and MessagePack
 
 The [xxd](http://linuxcommand.org/man_pages/xxd1.html) utility is used to display binary formats as a series of bytes in hex notation. 
 
-Convert [JSON](http://www.json.org) from STDIN to [MessagePack](http://msgpack.org) (Msgpack) and output to STDOUT. Panser converts JSON to Msgpack by default. See the `-h,--help` text for more information and options. Specifically, see the `-f,--from` and `-t,--to` help text for lists of supported formats. 
+Convert [JSON](http://www.json.org) from stdin to [MessagePack](http://msgpack.org) (Msgpack) and output to stdout. Panser converts JSON to Msgpack by default. See the `-h,--help` text for more information and options. Specifically, see the `-f,--from` and `-t,--to` help text for lists of supported formats. 
 
 ```bash
 $ echo '{"bool":true}' | panser | xxd -i
@@ -22,7 +22,7 @@ $ echo '{"bool":true}' | panser | xxd -i
 $
 ```
 
-Similarly, convert JSON from a file to Msgpack and output to STDOUT. If no file is specified, then input data is read continuously from STDIN. The file extension is used to determine the input data format unless the `-f,--from` option is explicitly used.
+Similarly, convert JSON from a file to Msgpack and output to stdout. If no file is specified, then input data is read continuously from stdin. The file extension is used to determine the input data format unless the `-f,--from` option is explicitly used.
 
 ```bash
 $ panser file.json | xxd -i
@@ -49,7 +49,7 @@ $ echo '{"bool":true,"number":1.234}' | panser -n -t Hjson
 $
 ```
 
-Write data to file instead of STDOUT. The output file will contain the binary MessagePack data.
+Write data to file instead of stdout. The output file will contain the binary MessagePack data.
 
 ```bash
 $ echo '{"bool":true,"number":1.234}' | panser -o file.msgpack
@@ -106,7 +106,7 @@ OPTIONS:
                              Hjson, JSON, Msgpack, Pickle, TOML, URL, YAML]
                              [default: JSON]
     -o, --output <output>    A file to write the output instead of writing to
-                             STDOUT. If a file extension exists, then it is
+                             stdout. If a file extension exists, then it is
                              used to determined the format of the output
                              serialized data. If a file extension does not
                              exist, then the `-t,--to` option should be used or
@@ -116,7 +116,7 @@ OPTIONS:
                              Msgpack]
 
 ARGS:
-    <FILE>    A file to read as input instead of reading from STDIN. If a file
+    <FILE>    A file to read as input instead of reading from stdin. If a file
               extension exists, then it is used to determine the format of the
               serialized data contained within the file. If a file extension
               does not exist, then the '-f,--from' option should be used or
@@ -141,6 +141,36 @@ Obtain the appropriate source distribution as an archive file and run the follow
     $ cargo install
 
 where `#.#.#` is replaced with the version number of the source distribution, respectively. It might be desirable to change the install location by using the `--root` option with the `cargo install` command. See the `cargo install --help` for more information about installing a Rust binary crate using Cargo.
+
+## Build ##
+
+### Dependencies ###
+
+- [Cargo](https://crates.io/), v0.17 or higher
+- [Pandoc](http://pandoc.org), v1.18 or higher
+- [Rust](https://www.rust-lang.org), v1.16 or higher
+
+Download and install the latest version of [Rust](https://www.rust-lang.org) before proceeding. [Cargo](https://crates.io) will be installed automatically with Rust. [Pandoc](http://pandoc.org) is used to convert the markdown files in the `man` folder to a manpage.
+
+### Application ###
+
+Obtain the appropriate source distribution as an archive file and run the following commands from a terminal:
+
+    $ tar xf panser-#.#.#.tar.gz
+    $ cd panser-#.#.#
+    $ cargo build
+
+where `#.#.#` is replaced with the version number of the source distribution, respectively. The `--release` flag can be added to the cargo command to build a release application instead of a debug application. 
+
+### Documentation ###
+
+Obtain the appropriate source distribution as an archive file and run the following commands from a terminal:
+
+    $ tar xf panser-#.#.#.tar.gz
+    $ cd panser-#.#.#
+    $ pandoc -s -t man -o man/panser.1 man/panser.1.md
+
+where `#.#.#` is replaced with the version number of the source distribution, respectively.
 
 ## License ##
 
