@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+### Added
+
+- Error code as process exit code.
+
 ### Changed
 
 - The organization to have the functionality available in the library.

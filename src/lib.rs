@@ -1,4 +1,10 @@
 // Copyright (c) 2017 Christopher R. Field. All rights reserved.
+
+//! # Panser
+//!
+//! Panser is primarily a Command-Line Interface (CLI) application for (de)serializing data formats
+//! in a UNIX, pipe-friendly manner.
+
 extern crate bincode;
 extern crate byteorder;
 extern crate envy;
