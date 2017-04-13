@@ -3,6 +3,14 @@ name = "panser"
 version = "0.1.1"
 authors = ["Christopher Field <cfield2@gmail.com>"]
 
+[[bin]]
+name = "panser"
+path = "src/main.rs"
+doctest = false
+
+[lib]
+doc = false
+
 [dependencies]
 bincode = "0.7"
 byteorder = "1"
