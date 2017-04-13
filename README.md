@@ -123,26 +123,24 @@ ARGS:
               JSON is assumed.
 ```
 
-## Build ##
+## Install ##
 
 ### Dependencies ###
 
 - [Cargo](https://crates.io/), v0.17 or higher
 - [Rust](https://www.rust-lang.org/), v1.16 or higher
 
-### Quick-Start Instructions ###
-
 Download and install the latest version of [Rust](https://www.rust-lang.org) before proceeding. [Cargo](https://crates.io) will be installed automatically with Rust.
 
-#### Source Distribution ####
+### Source Distribution ###
 
 Obtain the appropriate source distribution as an archive file and run the following commands from a terminal:
 
     $ tar xf panser-#.#.#.tar.gz
     $ cd panser-#.#.#
-    $ cargo build --release
+    $ cargo install
 
-where `#.#.#` is replaced with the version number of the source distribution, respectively.
+where `#.#.#` is replaced with the version number of the source distribution, respectively. It might be desirable to change the install location by using the `--root` option with the `cargo install` command. See the `cargo install --help` for more information about installing a Rust binary crate using Cargo.
 
 ## License ##
 
