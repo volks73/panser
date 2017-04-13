@@ -4,8 +4,12 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+## [0.1.1] - 2017-04-12
+
 ### Added
 
+- Examples to the documentation.
+- Installation directions to documentation.
 - Error code as process exit code.
 
 ### Changed
