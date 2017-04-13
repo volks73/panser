@@ -2,6 +2,7 @@
 name = "panser"
 version = "0.1.1"
 authors = ["Christopher Field <cfield2@gmail.com>"]
+build = "build.rs"
 
 [[bin]]
 name = "panser"
