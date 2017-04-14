@@ -102,13 +102,14 @@
 //! | 7    | Failure, error transcoding the JSON format         |
 //! | 8    | Failure, error decoding the MessagePack format     |
 //! | 9    | Failure, error encoding the MessagePack format     |
-//! | 10   | Failure, error transcoding the Pickle format       |
-//! | 11   | Failure, error decoding the TOML format            |
-//! | 12   | Failure, error encoding the TOML format            |
-//! | 13   | Failure, error with UTF-8 encoding                 |
-//! | 14   | Failure, error decoding the URL format             |
-//! | 15   | Failure, error encoding the URL format             |
-//! | 16   | Failure, error transcoding the YAML format         |
+//! | 10   | Failure, error parsing integer                     |
+//! | 11   | Failure, error transcoding the Pickle format       |
+//! | 12   | Failure, error decoding the TOML format            |
+//! | 13   | Failure, error encoding the TOML format            |
+//! | 14   | Failure, error with UTF-8 encoding                 |
+//! | 15   | Failure, error decoding the URL format             |
+//! | 16   | Failure, error encoding the URL format             |
+//! | 17   | Failure, error transcoding the YAML format         |
 
 #[macro_use]
 extern crate clap;
@@ -127,33 +128,13 @@ fn main() {
     // are delimited by a "delimter" byte. The same delimiter byte is appended to the output. This
     // applies the same delimiter to the input and output. The `--delimited-input` and
     // `--delimited-output` options can be used to specify different delimiter bytes for the input
-    // and output, or if only one of the two streams are or should be delimited. The
-    // `from_str_radix` for the u8 type can be used to convert the value to u8.
-    //
-    // It would be nice to be able to specify the delimiter byte with different radix. The possible
-    // radix would be: bin (binary), hex (hexadecimal, default), oct (octal), and dec (decimal).
-    // Possible notations could be: 
-    //
-    // b1010 = bin, hAF = hex, o111 = oct, d143 = dec.
-    // 0b1010 = bin, 0xAF = hex, 0o444 = oct, 0d143 = dec
-    // 1010b, AFh, 444o, 143d <- Current front runner, no suffix defaults to hex
-    // bin(101), hex(AF), oct(111), dec(143)
+    // and output, or if only one of the two streams are or should be delimited. 
 
     // TODO: Add `-s,--sized` flag. This indicates the length of each message is the first
     // four bytes of the input and the output should have the length of each message prepended to
     // the data. The `--sized-input` and `--sized-output` flags can be used to
     // independently specify the framing by length for the input and output.
 
-    // TODO: Add `--delimited-input` option, which takes a value. The value is a byte in hex
-    // notation, 0x##, where ## is a hexadecimal digit (0-9 or A-F). When specified, this option
-    // enables continuous reading of input data where individual messages of serialized data are
-    // delimited a "delimiter" byte. This is similar to framing, but uses a delimiter instead of
-    // message length to break up a stream into discrete messages.
-
-    // TODO: Add `--delimited-output` option, which takes a value. The value is byte in hex
-    // notation, 0x##, where ## is a hexadecimal digit (0-9 or A-F). When specified, the value,
-    // known as the delimiter byte, will be appended to the end of the serialized data message to
-    // delimit, or mark, the end of the message.
     let matches = App::new("panser")
         .version(crate_version!())
         .about("An application for transcoding serialization formats.") 

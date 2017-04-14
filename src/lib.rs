@@ -22,6 +22,7 @@ use std::any::Any;
 use std::error::Error as StdError;
 use std::fmt;
 use std::io;
+use std::num;
 use std::str::{self, FromStr};
 use std::result;
 
@@ -182,6 +183,7 @@ pub enum Error {
     Json(serde_json::Error),
     MsgpackDecode(rmp_serde::decode::Error),
     MsgpackEncode(rmp_serde::encode::Error),
+    ParseInt(num::ParseIntError),
     Pickle(serde_pickle::Error),
     TomlDecode(toml::de::Error),
     TomlEncode(toml::ser::Error),
@@ -204,13 +206,14 @@ impl Error {
             Error::Json(..) => 7,
             Error::MsgpackDecode(..) => 8,
             Error::MsgpackEncode(..) => 9,
-            Error::Pickle(..) => 10,
-            Error::TomlDecode(..) => 11,
-            Error::TomlEncode(..) => 12,
-            Error::Utf8(..) => 13,
-            Error::UrlDecode(..) => 14,
-            Error::UrlEncode(..) => 15,
-            Error::Yaml(..) => 16,
+            Error::ParseInt(..) => 10,
+            Error::Pickle(..) => 11,
+            Error::TomlDecode(..) => 12,
+            Error::TomlEncode(..) => 13,
+            Error::Utf8(..) => 14,
+            Error::UrlDecode(..) => 15,
+            Error::UrlEncode(..) => 16,
+            Error::Yaml(..) => 17,
         }
     }
 }
@@ -228,6 +231,7 @@ impl fmt::Display for Error {
             Error::Json(ref message) => write!(f, "{}", message),
             Error::MsgpackDecode(ref message) => write!(f, "{}", message),
             Error::MsgpackEncode(ref message) => write!(f, "{}", message),
+            Error::ParseInt(ref message) => write!(f, "{}", message),
             Error::Pickle(ref message) => write!(f, "{}", message),
             Error::TomlDecode(ref message) => write!(f, "{}", message),
             Error::TomlEncode(ref message) => write!(f, "{}", message),
@@ -252,6 +256,7 @@ impl StdError for Error {
             Error::Json(..) => "JSON error",
             Error::MsgpackDecode(..) => "MessagePack decoding error",
             Error::MsgpackEncode(..) => "MessagePack encoding error",
+            Error::ParseInt(..) => "Parse integer error",
             Error::Pickle(..) => "Pickle error",
             Error::TomlDecode(..) => "TOML decoding error",
             Error::TomlEncode(..) => "TOML encoding error",
@@ -272,6 +277,7 @@ impl StdError for Error {
             Error::Json(ref err) => Some(err),
             Error::MsgpackDecode(ref err) => Some(err),
             Error::MsgpackEncode(ref err) => Some(err),
+            Error::ParseInt(ref err) => Some(err),
             Error::Pickle(ref err) => Some(err),
             Error::TomlDecode(ref err) => Some(err),
             Error::TomlEncode(ref err) => Some(err),
@@ -334,6 +340,12 @@ impl From<rmp_serde::encode::Error> for Error {
 impl From<rmp_serde::decode::Error> for Error {
     fn from(err: rmp_serde::decode::Error) -> Error {
         Error::MsgpackDecode(err)
+    }
+}
+
+impl From<num::ParseIntError> for Error {
+    fn from(err: num::ParseIntError) -> Error {
+        Error::ParseInt(err)
     }
 }
 

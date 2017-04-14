@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+### Added
+
+- The `--delimited-input` option.
+- The `--delimited-output` option.
+
 ### Changed
 
 - The `--framed-input` flag to `--sized-input` to indicate the framing is by data size.
