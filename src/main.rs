@@ -157,15 +157,19 @@ fn main() {
     let matches = App::new("panser")
         .version(crate_version!())
         .about("An application for transcoding serialization formats.") 
+        .arg(Arg::with_name("delimited-input")
+             .help("Indicates a complete message is delimited by the specified byte value. The delimiter byte can be specified as a (b) binary, (d) decimal, (h) hexadecimal, or (o) octal string value by using the character as a suffix. For example, '0Ah' would be the newline character in ASCII hex. If no notation suffix is used, then hexadecimal notation is assumed for the byte value. This option cannot be used with the '--sized-input' flag.")
+             .long("delimited-input")
+             .conflicts_with("sized-input")
+             .takes_value(true))
+        .arg(Arg::with_name("delimited-output")
+             .help("Appends the delimiter byte to the message. The delimiter byte can be specified as a (b) binary, (d) decimal, (h) hexadecimal, or (o) octal string value by using the character as a suffix. For example, '0Ah' would be the newline character in ASCII hex. If no notation suffix is used, then hexadecimal notation is assumed for the byte value. This option cannot be used with the '--sized-input' flag.")
+             .long("delimited-output")
+             .conflicts_with("sized-output")
+             .takes_value(true))
         .arg(Arg::with_name("FILE")
             .help("A file to read as input instead of reading from stdin. If a file extension exists, then it is used to determine the format of the serialized data contained within the file. If a file extension does not exist, then the '-f,--from' option should be used or JSON is assumed.")
             .index(1))
-        .arg(Arg::with_name("sized-input")
-            .help("Indicates the first four bytes of the input is an unsigned 32-bit integer in Big Endian (Network Order) indicating the total length of the serialized data.")
-            .long("sized-input"))
-        .arg(Arg::with_name("sized-output")
-            .help("Prepends the total length of the serialized data as an unsigned 32-bit integer in Big Endian (Network Order).")
-            .long("sized-output"))
         .arg(Arg::with_name("from")
             .help("The input format. [values: Bincode, CBOR, Envy, Hjson, JSON, Msgpack, Pickle, TOML, URL, YAML] [default: JSON]")
             .long("from")
@@ -178,6 +182,14 @@ fn main() {
             .long("output")
             .short("o")
             .takes_value(true))
+        .arg(Arg::with_name("sized-input")
+            .help("Indicates the first four bytes of the input is an unsigned 32-bit integer in Big Endian (Network Order) indicating the total length of the serialized data. This flag cannot be used when the '--delimited-input' option is specified.")
+            .long("sized-input")
+            .conflicts_with("delimited-input"))
+        .arg(Arg::with_name("sized-output")
+            .help("Prepends the total length of the serialized data as an unsigned 32-bit integer in Big Endian (Network Order). This flag cannot be used when the '--delimited-output' option is specified.")
+            .long("sized-output")
+            .conflicts_with("delimited-output"))
         .arg(Arg::with_name("to")
             .help("The output format. [values: Bincode, CBOR, Hjson, JSON, Msgpack, Pickle, TOML, URL, YAML] [default: Msgpack]")
             .long("to")
@@ -186,22 +198,38 @@ fn main() {
             .possible_values(&ToFormat::possible_values())
             .takes_value(true))
         .get_matches();
-    let input_framing = {
-        // TODO: Add parsing `delimited-input` match
+    let input_framing = matches.value_of("delimited-input").map_or_else(|| {
         if matches.is_present("sized-input") {
             Some(Framing::Sized)
         } else {
             None
         }
-    };
-    let output_framing = {
-        // TODO: Add parsing `delimited-output` match
+    }, |s| {
+        let value = match s.chars().last().unwrap() {
+            'b' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 2).unwrap(),
+            'd' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 10).unwrap(),
+            'h' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 16).unwrap(),
+            'o' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 8).unwrap(),
+            _ => u8::from_str_radix(s, 16).unwrap(),
+        };
+        Some(Framing::Delimited(value))
+    });
+    let output_framing = matches.value_of("delimited-output").map_or_else(|| {
         if matches.is_present("sized-output") {
             Some(Framing::Sized)
         } else {
             None
         }
-    };
+    }, |s| {
+        let value = match s.chars().last().unwrap() {
+            'b' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 2).unwrap(),
+            'd' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 10).unwrap(),
+            'h' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 16).unwrap(),
+            'o' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 8).unwrap(),
+            _ => u8::from_str_radix(s, 16).unwrap(),
+        };
+        Some(Framing::Delimited(value))
+    });
     let result = panser::run(
         matches.value_of("FILE"), 
         matches.value_of("output"), 
