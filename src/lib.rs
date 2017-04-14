@@ -33,6 +33,12 @@ mod panser;
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Clone, Copy, Debug)]
+pub enum Framing {
+    Sized,
+    Delimited(u8),
+}
+
+#[derive(Clone, Copy, Debug)]
 pub enum ToFormat {
     Bincode,
     Cbor,

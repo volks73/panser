@@ -57,25 +57,23 @@
 //! $ echo '{"bool":true,"number":1.234}' | panser -o file.msgpack
 //! ```
 //!
-//! Add framing to the output. Framing is prepending the total serialized data length as an
-//! unsigned 32-bit integer in Big Endian (Network ORder), and it is often used to aid in creating
-//! stream-based applications for buffering. Note the first four bytes.
+//! Add sized-based framing to the output. Sized-based framing is prepending the total serialized data length as an unsigned 32-bit integer in Big Endian (Network Order), and it is often used to aid in buffering and creating stream-based applications. Note the first four bytes.
 //!
 //! ```bash
-//! $ echo '{"bool":true,"number":1.234}' | panser --framed-out | xxd -i
+//! $ echo '{"bool":true,"number":1.234}' | panser --sized-output | xxd -i
 //!   0x00, 0x00, 0x00, 0x17, 0x82, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3, 0xa6,
 //!   0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8,
 //!   0xb4, 0x39, 0x58
 //! $
 //! ```
 //!
-//! The same can be done for input to remove the framing. Note the use of the `-f` option to
+//! The same can be done for input to remove the data size. Note the use of the `-f` option to
 //! indicate the input format is MessagePack and _not_ JSON. The first four bytes are removed.
-//! Framing can be added or removed from any supported format, not just MessagePack or other binary
-//! formats.
+//! Sized-based framing can be added or removed from any supported format, not just MessagePack or
+//! other binary formats.
 //!
 //! ```bash
-//! $ echo '{"bool":true,"number":1.234}' | panser --framed-out | panser -f msgpack --framed-input | xxd -i
+//! $ echo '{"bool":true,"number":1.234}' | panser --sized-output | panser -f msgpack --sized-input | xxd -i
 //!   0x82, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3, 0xa6, 0x6e, 0x75, 0x6d, 0x62,
 //!   0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8, 0xb4, 0x39, 0x58
 //! $
@@ -87,7 +85,7 @@
 //! creating the `panser` application.
 //!
 //! ```bash
-//! $ echo '{"bool":true,"numeber":1.234}' | panser --framed-output | nc 127.0.0.1 1234
+//! $ echo '{"bool":true,"numeber":1.234}' | panser --sized-output | nc 127.0.0.1 1234
 //! ```
 //!
 //! # Exit Codes
@@ -117,24 +115,57 @@ extern crate clap;
 extern crate panser;
 
 use clap::{App, Arg};
-use panser::{FromFormat, ToFormat};
+use panser::{Framing, FromFormat, ToFormat};
 use std::io::Write;
 
 /// The main entry point of the application. Parses command line options and starts the main
 /// program.
 fn main() {
+    // TODO: Add `-d,--delimited` option, which takes a value. The value is byte in hex notation,
+    // 0x## or possibly just ##, where ## is a hexadecimal digit (0-9 or A-F). When specified, this
+    // option enables continuous reading of input data where individual messages of serialized data
+    // are delimited by a "delimter" byte. The same delimiter byte is appended to the output. This
+    // applies the same delimiter to the input and output. The `--delimited-input` and
+    // `--delimited-output` options can be used to specify different delimiter bytes for the input
+    // and output, or if only one of the two streams are or should be delimited. The
+    // `from_str_radix` for the u8 type can be used to convert the value to u8.
+    //
+    // It would be nice to be able to specify the delimiter byte with different radix. The possible
+    // radix would be: bin (binary), hex (hexadecimal, default), oct (octal), and dec (decimal).
+    // Possible notations could be: 
+    //
+    // b1010 = bin, hAF = hex, o111 = oct, d143 = dec.
+    // 0b1010 = bin, 0xAF = hex, 0o444 = oct, 0d143 = dec
+    // 1010b, AFh, 444o, 143d <- Current front runner, no suffix defaults to hex
+    // bin(101), hex(AF), oct(111), dec(143)
+
+    // TODO: Add `-s,--sized` flag. This indicates the length of each message is the first
+    // four bytes of the input and the output should have the length of each message prepended to
+    // the data. The `--sized-input` and `--sized-output` flags can be used to
+    // independently specify the framing by length for the input and output.
+
+    // TODO: Add `--delimited-input` option, which takes a value. The value is a byte in hex
+    // notation, 0x##, where ## is a hexadecimal digit (0-9 or A-F). When specified, this option
+    // enables continuous reading of input data where individual messages of serialized data are
+    // delimited a "delimiter" byte. This is similar to framing, but uses a delimiter instead of
+    // message length to break up a stream into discrete messages.
+
+    // TODO: Add `--delimited-output` option, which takes a value. The value is byte in hex
+    // notation, 0x##, where ## is a hexadecimal digit (0-9 or A-F). When specified, the value,
+    // known as the delimiter byte, will be appended to the end of the serialized data message to
+    // delimit, or mark, the end of the message.
     let matches = App::new("panser")
         .version(crate_version!())
         .about("An application for transcoding serialization formats.") 
         .arg(Arg::with_name("FILE")
             .help("A file to read as input instead of reading from stdin. If a file extension exists, then it is used to determine the format of the serialized data contained within the file. If a file extension does not exist, then the '-f,--from' option should be used or JSON is assumed.")
             .index(1))
-        .arg(Arg::with_name("framed-input")
+        .arg(Arg::with_name("sized-input")
             .help("Indicates the first four bytes of the input is an unsigned 32-bit integer in Big Endian (Network Order) indicating the total length of the serialized data.")
-            .long("framed-input"))
-        .arg(Arg::with_name("framed-output")
+            .long("sized-input"))
+        .arg(Arg::with_name("sized-output")
             .help("Prepends the total length of the serialized data as an unsigned 32-bit integer in Big Endian (Network Order).")
-            .long("framed-output"))
+            .long("sized-output"))
         .arg(Arg::with_name("from")
             .help("The input format. [values: Bincode, CBOR, Envy, Hjson, JSON, Msgpack, Pickle, TOML, URL, YAML] [default: JSON]")
             .long("from")
@@ -142,10 +173,6 @@ fn main() {
             .hide_possible_values(true)
             .possible_values(&FromFormat::possible_values())
             .takes_value(true))
-        .arg(Arg::with_name("include-newline")
-            .help("Writes the newline character (0x0A) to output at the end of serializing a message.")
-            .long("include-newline")
-            .short("n"))
         .arg(Arg::with_name("output")
             .help("A file to write the output instead of writing to stdout. If a file extension exists, then it is used to determined the format of the output serialized data. If a file extension does not exist, then the `-t,--to` option should be used or the MessagePack format is assumed.")
             .long("output")
@@ -159,14 +186,29 @@ fn main() {
             .possible_values(&ToFormat::possible_values())
             .takes_value(true))
         .get_matches();
+    let input_framing = {
+        // TODO: Add parsing `delimited-input` match
+        if matches.is_present("sized-input") {
+            Some(Framing::Sized)
+        } else {
+            None
+        }
+    };
+    let output_framing = {
+        // TODO: Add parsing `delimited-output` match
+        if matches.is_present("sized-output") {
+            Some(Framing::Sized)
+        } else {
+            None
+        }
+    };
     let result = panser::run(
         matches.value_of("FILE"), 
         matches.value_of("output"), 
         value_t!(matches, "from", FromFormat).ok(),
         value_t!(matches, "to", ToFormat).ok(),
-        matches.is_present("framed-input"),
-        matches.is_present("framed-output"),
-        matches.is_present("include-newline")
+        input_framing,
+        output_framing
     );
     match result {
         Ok(_) => {

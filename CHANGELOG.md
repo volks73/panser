@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+### Changed
+
+- The `--framed-input` flag to `--sized-input` to indicate the framing is by data size.
+- The `--framed-output` flag to `--size-output` to indicate the framing is by data size.
+
 ## [0.1.1] - 2017-04-12
 
 ### Added
