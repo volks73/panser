@@ -123,14 +123,22 @@ fn read_exact<R: BufRead>(mut reader: R, message_tx: mpsc::Sender<Vec<u8>>) -> R
 fn read_until<R: BufRead>(mut reader: R, delimiter: u8, message_tx: mpsc::Sender<Vec<u8>>) -> Result<()> {
     loop {
         let mut buf = Vec::new();
-        reader.read_until(delimiter, &mut buf).map_err(|e| {
+        let bytes_count = reader.read_until(delimiter, &mut buf).map_err(|e| {
             match e.kind() {
                 ErrorKind::UnexpectedEof => Error::Eof,
                 _ => Error::Io(e)
             }
         })?;
-        message_tx.send(buf).unwrap();
+        // If the `read_until` method is at the End-of-File (EOF), then it will return zero for the
+        // number of bytes read and the buffer will be unmodified. In this case, that means an
+        // empty Vec.
+        if buf.is_empty() && bytes_count == 0 {
+            break; // EOF
+        } else {
+            message_tx.send(buf).unwrap();
+        }
     }
+    Ok(())
 }
 
 fn read<R: BufRead>(mut reader: R, framing: Option<Framing>, message_tx: mpsc::Sender<Vec<u8>>) -> Result<()> {
