@@ -116,7 +116,7 @@ extern crate clap;
 extern crate panser;
 
 use clap::{App, Arg};
-use panser::{Framing, FromFormat, ToFormat};
+use panser::{FromFormat, Panser, ToFormat};
 use std::io::Write;
 
 /// The main entry point of the application. Parses command line options and starts the main
@@ -179,46 +179,16 @@ fn main() {
             .possible_values(&ToFormat::possible_values())
             .takes_value(true))
         .get_matches();
-    let input_framing = matches.value_of("delimited-input").map_or_else(|| {
-        if matches.is_present("sized-input") {
-            Some(Framing::Sized)
-        } else {
-            None
-        }
-    }, |s| {
-        let value = match s.chars().last().unwrap() {
-            'b' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 2).unwrap(),
-            'd' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 10).unwrap(),
-            'h' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 16).unwrap(),
-            'o' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 8).unwrap(),
-            _ => u8::from_str_radix(s, 16).unwrap(),
-        };
-        Some(Framing::Delimited(value))
-    });
-    let output_framing = matches.value_of("delimited-output").map_or_else(|| {
-        if matches.is_present("sized-output") {
-            Some(Framing::Sized)
-        } else {
-            None
-        }
-    }, |s| {
-        let value = match s.chars().last().unwrap() {
-            'b' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 2).unwrap(),
-            'd' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 10).unwrap(),
-            'h' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 16).unwrap(),
-            'o' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 8).unwrap(),
-            _ => u8::from_str_radix(s, 16).unwrap(),
-        };
-        Some(Framing::Delimited(value))
-    });
-    let result = panser::run(
-        matches.value_of("FILE"), 
-        matches.value_of("output"), 
-        value_t!(matches, "from", FromFormat).ok(),
-        value_t!(matches, "to", ToFormat).ok(),
-        input_framing,
-        output_framing
-    );
+    let result = Panser::new()
+        .input(matches.value_of("FILE"))
+        .output(matches.value_of("output"))
+        .from(value_t!(matches, "from", FromFormat).ok())
+        .to(value_t!(matches, "to", ToFormat).ok())
+        .delimited_input(matches.value_of("delimited-input"))
+        .delimited_output(matches.value_of("delimited-output"))
+        .sized_input(matches.is_present("sized-input"))
+        .sized_output(matches.is_present("sized-output"))
+        .run();
     match result {
         Ok(_) => {
             std::process::exit(0);

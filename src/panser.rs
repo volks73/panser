@@ -162,78 +162,176 @@ fn read<R: BufRead>(mut reader: R, framing: Option<Framing>, message_tx: mpsc::S
     Ok(())
 }
 
-/// Create a producer-consumer architecture for reading and writing data. 
-///
-/// A separate thread is created and started for reading the input until until End-of-File (EOF) is
-/// reached.
-///
-/// If input is `None`, then `stdin` is used for input. If output is `None`, then `stdout` is used
-/// for output. If the input (from) format is `None`, then the format is determined from the file
-/// extension if a file is provided and it has an extension. The default input format is JSON. If
-/// the input format is not JSON and a file with an appropriate extension is _not_ used, then the
-/// `from` parameter should not be `None`. A similar procedure is used for the output (to) format.
-pub fn run(input: Option<&str>, output: Option<&str>, from: Option<FromFormat>, to: Option<ToFormat>, input_framing: Option<Framing>, output_framing: Option<Framing>) -> Result<()> {
-    let (message_tx, message_rx) = mpsc::channel::<Vec<u8>>();
-    // Use `BufRead` instead of `Read` to add additional reading methods, like `read_until`. The
-    // `Send` trait is needed to move the reader to the read thread.
-    let reader: Box<BufRead + Send> = {
-        if let Some(i) = input {
-            Box::new(BufReader::new(File::open(i)?))
-        } else {
-            Box::new(BufReader::new(io::stdin()))
+pub struct Panser {
+    input: Option<String>,
+    output: Option<String>,
+    from: Option<FromFormat>,
+    to: Option<ToFormat>,
+    delimited_input: Option<String>,
+    delimited_output: Option<String>,
+    sized_input: bool,
+    sized_output: bool,
+}
+
+impl Panser {
+    pub fn new() -> Panser {
+        Panser {
+            input: None,
+            output: None,
+            from: None,
+            to: None,
+            delimited_input: None,
+            delimited_output: None,
+            sized_input: false,
+            sized_output: false,
         }
-    };
-    let mut writer: Box<Write> = {
-        if let Some(o) = output {
-            Box::new(File::create(o)?)
-        } else {
-            Box::new(io::stdout())
-        }
-    };
-    let handle = thread::spawn(move || {
-        read(reader, input_framing, message_tx).or_else(|e| {
-            match e {
-                Error::Eof => {
-                    Ok(())
-                },
-                _ => Err(e),
+    }
+
+    pub fn input(mut self, input: Option<&str>) -> Self {
+        self.input = input.map(|i| i.to_owned());
+        self
+    }
+
+    pub fn output(mut self, output: Option<&str>) -> Self {
+        self.output = output.map(|o| o.to_owned());
+        self
+    }
+
+    pub fn from(mut self, from: Option<FromFormat>) -> Self {
+        self.from = from;
+        self
+    }
+
+    pub fn to(mut self, to: Option<ToFormat>) -> Self {
+        self.to = to;
+        self
+    }
+
+    pub fn delimited_input(mut self, delimited: Option<&str>) -> Self {
+        self.delimited_input = delimited.map(|d| d.to_owned());
+        self
+    }
+
+    pub fn delimited_output(mut self, delimited: Option<&str>) -> Self {
+        self.delimited_output = delimited.map(|d| d.to_owned());
+        self
+    }
+
+    pub fn sized_input(mut self, sized: bool) -> Self {
+        self.sized_input = sized;
+        self
+    }
+
+    pub fn sized_output(mut self, sized: bool) -> Self {
+        self.sized_output = sized;
+        self
+    }
+
+    /// Create a producer-consumer architecture for reading and writing data. 
+    ///
+    /// A separate thread is created and started for reading the input until until End-of-File (EOF) is
+    /// reached.
+    ///
+    /// If input is `None`, then `stdin` is used for input. If output is `None`, then `stdout` is used
+    /// for output. If the input (from) format is `None`, then the format is determined from the file
+    /// extension if a file is provided and it has an extension. The default input format is JSON. If
+    /// the input format is not JSON and a file with an appropriate extension is _not_ used, then the
+    /// `from` parameter should not be `None`. A similar procedure is used for the output (to) format.
+    pub fn run(self) -> Result<()> {
+        let (message_tx, message_rx) = mpsc::channel::<Vec<u8>>();
+        // Use `BufRead` instead of `Read` to add additional reading methods, like `read_until`. The
+        // `Send` trait is needed to move the reader to the read thread.
+        let reader: Box<BufRead + Send> = {
+            if let Some(i) = self.input.as_ref() {
+                Box::new(BufReader::new(File::open(i)?))
+            } else {
+                Box::new(BufReader::new(io::stdin()))
             }
-        }).unwrap();
-    });
-    loop {
-        if let Ok(message) = message_rx.recv() {
-            transcode(&message, &mut writer, from.unwrap_or({
-                if let Some(i) = input {
-                    if let Some(e) = Path::new(i).extension() {
-                        FromFormat::from_str(
-                            e.to_str().unwrap_or("json")
-                        ).unwrap_or(FromFormat::Json)
-                    } else {
-                        FromFormat::Json
-                    }
+        };
+        let mut writer: Box<Write> = {
+            if let Some(o) = self.output.as_ref() {
+                Box::new(File::create(o)?)
+            } else {
+                Box::new(io::stdout())
+            }
+        };
+        let from = self.from.unwrap_or({
+            if let Some(i) = self.input.as_ref() {
+                if let Some(e) = Path::new(i).extension() {
+                    FromFormat::from_str(
+                        e.to_str().unwrap_or("json")
+                    ).unwrap_or(FromFormat::Json)
                 } else {
                     FromFormat::Json
                 }
-            }),
-            to.unwrap_or({
-                if let Some(o) = output {
-                    if let Some(e) = Path::new(o).extension() {
-                        ToFormat::from_str(
-                            e.to_str().unwrap_or("msgpack")
-                        ).unwrap_or(ToFormat::Msgpack)
-                    } else {
-                        ToFormat::Msgpack
-                    }
+            } else {
+                FromFormat::Json
+            }
+        });
+        let to = self.to.unwrap_or({
+            if let Some(o) = self.output.as_ref() {
+                if let Some(e) = Path::new(o).extension() {
+                    ToFormat::from_str(
+                        e.to_str().unwrap_or("msgpack")
+                    ).unwrap_or(ToFormat::Msgpack)
                 } else {
                     ToFormat::Msgpack
                 }
-            }), 
-            output_framing)?;
-        } else {
-            break;
+            } else {
+                ToFormat::Msgpack
+            }
+        });
+        let input_framing = self.delimited_input.as_ref().map_or_else(|| {
+            if self.sized_input {
+                Some(Framing::Sized)
+            } else {
+                None
+            }
+        }, |s| {
+            let value = match s.chars().last().unwrap() {
+                'b' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 2).unwrap(),
+                'd' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 10).unwrap(),
+                'h' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 16).unwrap(),
+                'o' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 8).unwrap(),
+                _ => u8::from_str_radix(&s, 16).unwrap(),
+            };
+            Some(Framing::Delimited(value))
+        });
+        let output_framing = self.delimited_output.as_ref().map_or_else(|| {
+            if self.sized_output {
+                Some(Framing::Sized)
+            } else {
+                None
+            }
+        }, |s| {
+            let value = match s.chars().last().unwrap() {
+                'b' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 2).unwrap(),
+                'd' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 10).unwrap(),
+                'h' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 16).unwrap(),
+                'o' => u8::from_str_radix(&s.chars().take(s.len() - 1).collect::<String>(), 8).unwrap(),
+                _ => u8::from_str_radix(&s, 16).unwrap(),
+            };
+            Some(Framing::Delimited(value))
+        });
+        let handle = thread::spawn(move || {
+            read(reader, input_framing, message_tx).or_else(|e| {
+                match e {
+                    Error::Eof => {
+                        Ok(())
+                    },
+                    _ => Err(e),
+                }
+            }).unwrap();
+        });
+        loop {
+            if let Ok(message) = message_rx.recv() {
+                transcode(&message, &mut writer, from, to, output_framing)?;
+            } else {
+                break;
+            }
         }
+        handle.join()?;
+        Ok(())
     }
-    handle.join()?;
-    Ok(())
 }
 
