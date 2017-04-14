@@ -28,7 +28,6 @@ use std::result;
 
 pub use self::panser::Panser;
 pub use self::panser::transcode;
-//pub use self::panser::run;
 
 mod panser;
 

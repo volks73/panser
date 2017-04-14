@@ -57,7 +57,9 @@
 //! $ echo '{"bool":true,"number":1.234}' | panser -o file.msgpack
 //! ```
 //!
-//! Add sized-based framing to the output. Sized-based framing is prepending the total serialized data length as an unsigned 32-bit integer in Big Endian (Network Order), and it is often used to aid in buffering and creating stream-based applications. Note the first four bytes.
+//! Add sized-based framing to the output. Sized-based framing is prepending the total serialized
+//! data length as an unsigned 32-bit integer in Big Endian (Network Order), and it is often used
+//! to aid in buffering and creating stream-based applications. Note the first four bytes.
 //!
 //! ```bash
 //! $ echo '{"bool":true,"number":1.234}' | panser --sized-output | xxd -i
@@ -76,6 +78,28 @@
 //! $ echo '{"bool":true,"number":1.234}' | panser --sized-output | panser -f msgpack --sized-input | xxd -i
 //!   0x82, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3, 0xa6, 0x6e, 0x75, 0x6d, 0x62,
 //!   0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8, 0xb4, 0x39, 0x58
+//! $
+//! ```
+//!
+//! Another form of framing data in a stream involves delimiting each frame with delimiter byte.
+//! Panser can also handle delimited-based framing of data. This uses the ASCII newline character
+//! (`\n`, 10 dec, 0A hex, or 012 octal) as the delimiter.
+//!
+//! ```bash
+//! $ echo '{"bool":true,"number":1.234}' | panser --delimited-output 10d | panser -f msgpack --delimited-input 10d | xxd -i
+//!   0x82, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3, 0xa6, 0x6e, 0x75, 0x6d, 0x62, 
+//!   0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8, 0xb4, 0x39, 0x58$
+//! ```
+//!
+//! Using the delimited input and output is also a way to create an interactive console for panser.
+//!
+//! ```bash
+//! $ panser --delimited-input 0Ah --delimited-output 0Ah
+//! >{"bool":true"}
+//! ??bool?
+//! >{"number":1.234}
+//! ??number?
+//! >^D
 //! $
 //! ```
 //!
