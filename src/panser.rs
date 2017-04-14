@@ -12,13 +12,21 @@ use toml;
 
 use byteorder::{ByteOrder, BigEndian, ReadBytesExt};
 use std::fs::File;
-use std::io::{self, Cursor, ErrorKind, Read, Write};
+use std::io::{self, BufRead, BufReader, Cursor, ErrorKind, Write};
 use std::path::Path;
 use std::str::{self, FromStr};
 use std::sync::mpsc;
 use std::thread;
 use super::{Error, FromFormat, Result, ToFormat};
 
+/// Convert the input in a format to the output format.
+///
+/// Ideally, the input would have a more generic `Read` or `BufRead` type. The input is of type
+/// `&[u8]` as opposed to a more generic `Read` or `BufRead` type like the output is a generic
+/// `Write` type because not all serialization libraries currently support the `from_reader` method
+/// or a method that deserializes from a reader, but all currently supported serialization
+/// libraries do support the `from_slice` or similar method for deserialization from a slice of
+/// bytes. 
 pub fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFormat, framed: bool, include_newline: bool) -> Result<()> {
     let value = {
         match from {
@@ -64,9 +72,17 @@ pub fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: T
     Ok(())
 }
 
-fn read<R: Read + Send>(mut reader: R, framed: bool, message_tx: mpsc::Sender<Vec<u8>>) -> Result<()> {
-    loop {
-        if framed {
+fn read<R: BufRead>(mut reader: R, framed: bool, message_tx: mpsc::Sender<Vec<u8>>) -> Result<()> {
+    if framed {
+        // If the input is framed, this means messages (input data) can be continuous read from
+        // stdin or similar stream until End of File (EOF) is reached. Reaching EOF typically
+        // occurs in a streaming capacity when stdout is closed by the proceeding application that
+        // is piping (|) the output to the stdin of this application. Since the data is framed, the
+        // application knows the number of bytes to read for each message without having to look
+        // for a delimiting bytes, such as a newline (0x0A), or read the entire file to reach EOF
+        // before transcoding. In other words, framed messages can be read as they stream into the
+        // application.
+        loop {
             let mut frame_length_buf = [0; 4];
             reader.read_exact(&mut frame_length_buf).map_err(|e| {
                 match e.kind() {
@@ -84,36 +100,53 @@ fn read<R: Read + Send>(mut reader: R, framed: bool, message_tx: mpsc::Sender<Ve
                 }
             })?;
             message_tx.send(buf).unwrap();
-        } else {
-            let mut buf = Vec::new();
-            let bytes_count = reader.read_to_end(&mut buf)?;
-            if bytes_count > 0 {
-                if !buf.is_empty() {
-                    message_tx.send(buf).unwrap();
-                }
-            } else {
-                // EOF
-                break;
-            }
         }
+    } else {
+        // If the input is _not_ framed, the asumption is currently that the input is from a file,
+        // either from a redirection (<) or as a first optional ARG from the command line. In the
+        // case of a file, the entire contents should be read and then transcoded. This is not very
+        // efficient, but unless framing is used or a delimiter is used within the file to separate
+        // messages, this is the only universal way to transcode all serialization formats.
+        let mut buf = Vec::new();
+        let bytes_count = reader.read_to_end(&mut buf)?;
+        if bytes_count > 0 {
+            if !buf.is_empty() {
+                message_tx.send(buf).unwrap();
+            }
+        } 
     }
+    // TODO: Add delimited-based reading. The `read_until` function should be used instead of
+    // framing or the `read_to_end` function. This would allow reading multiple messages from
+    // a file or stream (stdin) without having to read the entire contents before transcoding,
+    // similar to the frame reading.
     Ok(())
 }
 
+/// Create a producer-consumer architecture for reading and writing data. 
+///
+/// A separate thread is created and started for reading the input until until End-of-File (EOF) is
+/// reached.
+///
+/// If input is `None`, then `stdin` is used for input. If output is `None`, then `stdout` is used
+/// for output. If the input (from) format is `None`, then the format is determined from the file
+/// extension if a file is provided and it has an extension. The default input format is JSON. If
+/// the input format is not JSON and a file with an appropriate extension is _not_ used, then the
+/// `from` parameter should not be `None`. A similar procedure is used for the output (to) format.
 pub fn run(input: Option<&str>, output: Option<&str>, from: Option<FromFormat>, to: Option<ToFormat>, framed_input: bool, framed_output: bool, include_newline: bool) -> Result<()> {
     let (message_tx, message_rx) = mpsc::channel::<Vec<u8>>();
+    // Use `BufRead` instead of `Read` to add additionally reading methods, like `read_until`.
+    let reader: Box<BufRead + Send> = {
+        if let Some(p) = input {
+            Box::new(BufReader::new(File::open(p)?))
+        } else {
+            Box::new(BufReader::new(io::stdin()))
+        }
+    };
     let mut writer: Box<Write> = {
         if let Some(o) = output {
             Box::new(File::create(o)?)
         } else {
             Box::new(io::stdout())
-        }
-    };
-    let reader: Box<Read + Send> = {
-        if let Some(i) = input {
-            Box::new(File::open(i)?)
-        } else {
-            Box::new(io::stdin())
         }
     };
     let handle = thread::spawn(move || {
