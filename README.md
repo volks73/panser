@@ -85,7 +85,7 @@ $ echo '{"bool":true,"number":1.234}' | panser --delimited-output 0Ah | panser -
 The delimited-based framing can be used to create an interactive console for panser.
 
 ```
-$ panser --delimited-output 0Ah --delimited-input 0Ah -t Hjson
+$ panser -d 0Ah -t Hjson
 {"bool":true}
 {
     "bool": true
