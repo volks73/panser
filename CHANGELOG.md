@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+## [0.2.0] - 2017-04-15
+
 ### Added
 
 - The `-d,--delimited` option.
@@ -15,6 +17,7 @@ All notable changes to this project will be documented in this file, which is wr
 
 - The `--framed-input` flag to `--sized-input` to indicate the framing is by data size.
 - The `--framed-output` flag to `--size-output` to indicate the framing is by data size.
+- License from MIT to GPLv3.
 
 ## [0.1.1] - 2017-04-12
 
