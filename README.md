@@ -1,6 +1,6 @@
 # Panser: A command line application for (de)serializing data #
 
-Copyright (C) 2017 Christopher R. Field. All rights reserved.
+Copyright (C) 2017 Christopher R. Field.
 
 This file is written in ASCII-encoded plain text using the [Github Flavored Markdown (GFM)](https://help.github.com/articles/github-flavored-markdown/) lightweight markup language.
 
