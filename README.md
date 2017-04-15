@@ -161,7 +161,7 @@ where `#.#.#` is replaced with the version number of the source distribution, re
 
 ## License ##
 
-See the LICENSE file for a information about licensing and copyright.
+See the LICENSE file for more information about licensing and copyright.
 
 ## Contributors ##
 
