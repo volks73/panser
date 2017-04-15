@@ -74,7 +74,7 @@ $ echo '{"bool":true,"number":1.234}' | panser --sized-output | panser -f msgpac
   0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8, 0xb4, 0x39, 0x58
 ```
 
-An alternative form of framing uses a delimiter byte between frames, or messages. Panser can handle delimited-based framing in a similar manner to size-based framing. The `--delimited-input` and `--delimited-output` options take a value that is string representation of a single byte. A radix suffix can be added to indicate the byte notation: (b) binary, (d) decimal, (h) hexadecimal, or (o) octal. If no radix suffix is used, then hexadecimal notation is assumed. Here, the ASCII newline character (`\n`, 1010b, 10d, 0Ah, and 012o) is used to delimit the binary data.
+An alternative form of framing uses a delimiter byte between frames, or messages. Panser can handle delimiter-based framing in a similar manner to size-based framing. The `--delimited-input` and `--delimited-output` options take a value that is string representation of a single byte. A radix suffix can be added to indicate the byte notation: (b) binary, (d) decimal, (h) hexadecimal, or (o) octal. If no radix suffix is used, then hexadecimal notation is assumed. Here, the ASCII newline character (`\n`, 1010b, 10d, 0Ah, and 012o) is used to delimit the binary data.
 
 ```bash
 $ echo '{"bool":true,"number":1.234}' | panser --delimited-output 0Ah | panser -f msgpack --delimited-input 0Ah | xxd -i
@@ -82,7 +82,7 @@ $ echo '{"bool":true,"number":1.234}' | panser --delimited-output 0Ah | panser -
   0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8, 0xb4, 0x39, 0x58
 ```
 
-The delimited-based framing can be used to create an interactive console for panser.
+The delimiter-based framing can be used to create an interactive console for panser.
 
 ```
 $ panser -d 0Ah -t Hjson
