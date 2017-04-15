@@ -1,7 +1,12 @@
 [package]
 name = "panser"
+description = "A command line utility for (de)serializing data"
 version = "0.2.0"
 authors = ["Christopher Field <cfield2@gmail.com>"]
+license = "GPL-3.0"
+readme = "README.md"
+keywords = ["cli", "serialization", "transcode", "deserialization"]
+categories = ["encoding", "command-line-utilities", "value-formatting"]
 
 [[bin]]
 name = "panser"
