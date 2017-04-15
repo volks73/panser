@@ -6,13 +6,13 @@ This file is written in ASCII-encoded plain text using the [Github Flavored Mark
 
 ## What is Panser? ##
 
-The Panser project is a Command-Line Interface (CLI) application for (de)serializing data formats in a UNIX, pipe-friendly manner. The project is primarily written in the [Rust](http://www.rust-lang.org) programming language. The idea is to have a single application for reading data in one format on stdin and writing the same data but in a different format to stdout. It is possible to read data from a file and write to a file, but the application is focused on creating streams of data that can be piped into a socket, such as a TCP stream. The primary motivator for the application is to read [JSON](http://www.json.org/) data and output to the [MessagePack](http://msgpack.org/index.html) format which could be used with a TCP stream to build a low-level Application Programming Interface (API) for a network-enabled application. The reverse is also a desired goal, reading in MessagePack data (binary, machine-readable) and transcoding it to JSON (text, human-readable).
+The Panser project is a Command-Line Interface (CLI) application for (de)serializing data formats in a UNIX, pipe-friendly manner. The project is primarily written in the [Rust](http://www.rust-lang.org) programming language. The idea is to have a single application for reading data in one format on stdin and writing the same data but in a different format to stdout. It is possible to read data from a file and write to another file, but the application is focused on creating streams of data that can be piped into a socket, such as a TCP stream. The primary motivator for the application is to read [JSON](http://www.json.org/) data and output to the [MessagePack](http://msgpack.org/index.html) format which could be used with a TCP stream to develop low-level Application Programming Interfaces (APIs) for network-enabled applications. The reverse is also a desired goal: reading in MessagePack data (binary, machine-readable) and transcoding it to JSON (text, human-readable).
 
 After accomplishing the primary goal of transcoding between JSON and MessagePack (Msgpack) formats, additional formats were gradually added using the [serde](https://github.com/serde-rs/serde) project and related libraries. Almost all of the formats listed in the [Data Formats](https://serde.rs/#data-formats) section of the [Overview](https://serde.rs/) for the serde project are implemented. The intention is to add more formats as more crates are developed using the serde framework.
 
 ## Examples ##
 
-The [xxd](http://linuxcommand.org/man_pages/xxd1.html) utility is used to display binary formats as a series of bytes in hex notation. 
+In the following examples, the [xxd](http://linuxcommand.org/man_pages/xxd1.html) utility is used to display binary formats as a series of bytes in hex notation and demonstrate piping the output from Panser to another application. 
 
 Convert [JSON](http://www.json.org) from stdin to [MessagePack](http://msgpack.org) (Msgpack) and write to stdout. Panser converts JSON to Msgpack by default. See the `-h,--help` text for more information and options. Specifically, see the `-f,--from` and `-t,--to` help text for lists of supported formats. 
 
@@ -82,7 +82,7 @@ $ echo '{"bool":true,"number":1.234}' | panser --delimited-output 0Ah | panser -
   0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8, 0xb4, 0x39, 0x58
 ```
 
-The delimiter-based framing can be used to create an interactive console for panser.
+The delimiter-based framing can be used to create an interactive console for Panser.
 
 ```
 $ panser -d 0Ah -t Hjson
@@ -97,13 +97,13 @@ $ panser -d 0Ah -t Hjson
 }
 ```
 
-Data can be sent to a network device using the [nc](https://linux.die.net/man/1/nc) command. The JSON will be transcoded to size-based framed MessagePack and streamed to the server at the IP address and TCP port used with the `nc` command. This was actually the primary motivation for creating the `panser` application.
+Data can be sent to a network device using the [nc](https://linux.die.net/man/1/nc) command. The JSON will be transcoded to size-based framed MessagePack and streamed to the server at the IP address and TCP port used with the `nc` command. This was actually the primary motivation for creating the Panser application.
 
 ```bash
 $ echo '{"bool":true,"numeber":1.234}' | panser --sized-output | nc 127.0.0.1 1234
 ```
 
-Interestingly, panser can be used in conjunction with the [wsta](https://github.com/esphen/wsta) application to send and receive data from a web socket server.
+Interestingly, Panser can be used in conjunction with the [wsta](https://github.com/esphen/wsta) application to send and receive data from a web socket server.
 
 ```bash
 $ ehco '{"bool":true}' | panser | wsta 127.0.0.1:1234 | panser -f msgpack -t json
@@ -115,9 +115,20 @@ $ ehco '{"bool":true}' | panser | wsta 127.0.0.1:1234 | panser -f msgpack -t jso
 ### Dependencies ###
 
 - [Cargo](https://crates.io/), v0.17 or higher
+- [Pandoc](http://pandoc.org), v1.18 or higher, optional
 - [Rust](https://www.rust-lang.org/), v1.16 or higher
 
-Download and install the latest version of [Rust](https://www.rust-lang.org) before proceeding. [Cargo](https://crates.io) will be installed automatically with Rust.
+Download and install the latest version of [Rust](https://www.rust-lang.org) before proceeding. [Cargo](https://crates.io) will be installed automatically with Rust. [Pandoc](http://pandoc.org) is only need for installing and/or building the manual documentation, and it is optional.
+
+### Repository ###
+
+Obtain the source from the git repository and run the following commands from a terminal:
+
+    $ git clone https://github.com/volks73/panser.git
+    $ cd panser
+    $ cargo install
+
+It might be desirable to change the install location by using the `--root` option with the `cargo install` command. See the `cargo install --help` for more information about installing a Rust binary crate using Cargo.
 
 ### Source Distribution ###
 
@@ -129,19 +140,26 @@ Obtain the appropriate source distribution as an archive file and run the follow
 
 where `#.#.#` is replaced with the version number of the source distribution, respectively. It might be desirable to change the install location by using the `--root` option with the `cargo install` command. See the `cargo install --help` for more information about installing a Rust binary crate using Cargo.
 
+### Documentation (Optional) ###
+
+The manual must currently be installed manually. The [Pandoc]() application must be installed to convert the manual in markdown to the appropriate format. First install the application, then from the root directory of the project, run the following commands from a terminal:
+
+    $ pandoc -s -t man -o man/panser.1 man/panser.1.md 
+    $ cp man/panser.1 /usr/share/man/man1
+
 ## Build ##
 
-### Dependencies ###
-
-- [Cargo](https://crates.io/), v0.17 or higher
-- [Pandoc](http://pandoc.org), v1.18 or higher
-- [Rust](https://www.rust-lang.org), v1.16 or higher
-
-Download and install the latest version of [Rust](https://www.rust-lang.org) before proceeding. [Cargo](https://crates.io) will be installed automatically with Rust. [Pandoc](http://pandoc.org) is used to convert the markdown files in the `man` folder to a manpage.
+Download and install the same dependencies listed for installing the application, this includes the latest versions of [Rust](https://www.rust-lang.org), [Cargo](https://crates.io), and optionally [Pandoc](http://pandoc.org).
 
 ### Application ###
 
-Obtain the appropriate source distribution as an archive file and run the following commands from a terminal:
+Obtain the appropriate source from the repository and run the following commands from a terminal:
+
+    $ git clone https://github.com/volks73/panser.git
+    $ cd panser
+    $ cargo build
+
+Or obtain the source as an archive and run the following commands from a terminal:
 
     $ tar xf panser-#.#.#.tar.gz
     $ cd panser-#.#.#
@@ -151,13 +169,9 @@ where `#.#.#` is replaced with the version number of the source distribution, re
 
 ### Documentation ###
 
-Obtain the appropriate source distribution as an archive file and run the following commands from a terminal:
+Obtain the appropriate source and run the following commands from the root directory of the project in a terminal:
 
-    $ tar xf panser-#.#.#.tar.gz
-    $ cd panser-#.#.#
     $ pandoc -s -t man -o man/panser.1 man/panser.1.md
-
-where `#.#.#` is replaced with the version number of the source distribution, respectively.
 
 ## License ##
 
