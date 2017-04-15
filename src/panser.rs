@@ -229,8 +229,9 @@ pub fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: T
             FromFormat::Bincode => bincode::deserialize::<serde_json::Value>(input)?,
             FromFormat::Cbor => serde_cbor::from_slice::<serde_json::Value>(input)?,
             FromFormat::Envy => envy::from_env::<serde_json::Value>()?,
-            // Until the Hjson create is updated to work with serde v0.9 or newer, just use the
-            // serde_json crate.
+            // TODO: Change to use Hjson serde library. Until the Hjson crate is updated to work
+            // with serde v0.9 or newer, the serde_json create is used. The Hjson crate currently
+            // uses serde v0.8 and causes compiler errors.
             FromFormat::Hjson => serde_json::from_slice::<serde_json::Value>(input)?,
             FromFormat::Json => serde_json::from_slice::<serde_json::Value>(input)?,
             FromFormat::Msgpack => rmp_serde::from_slice::<serde_json::Value>(input)?,
@@ -244,8 +245,9 @@ pub fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: T
         match to {
             ToFormat::Bincode => bincode::serialize(&value, bincode::Infinite)?,
             ToFormat::Cbor => serde_cbor::to_vec(&value)?,
-            // Until the Hjson crate is updated to work with serde v0.9 or newer, use the
-            // serde-json crate's pretty print for the Hjson format.
+            // TODO: Change to use Hjson serde library. Until the Hjson crate is updated to work
+            // with serde v0.9 or newer, the serde_json create is used. The Hjson crate currently
+            // uses serde v0.8 and causes compiler errors.
             ToFormat::Hjson => serde_json::to_vec_pretty(&value)?, 
             ToFormat::Json => serde_json::to_vec(&value)?,
             ToFormat::Msgpack => rmp_serde::to_vec(&value)?,
@@ -366,9 +368,8 @@ fn read<R: BufRead>(mut reader: R, framing: Option<Framing>, message_tx: mpsc::S
             Framing::Delimited(delimiter) => read_until(reader, delimiter, message_tx)?,
         }
     } else {
-        // If framing is not used, then the end stream or file must be read before transcoding
-        // begins. This is the only really universal way to transcode a non-framed stream since not
-        // all serialization formats use framing.
+        // If framing is not used, then the end of the stream or file must be read before transcoding
+        // begins. This is the only real universal way to transcode a non-framed stream.
         let mut buf = Vec::new();
         let bytes_count = reader.read_to_end(&mut buf)?;
         if bytes_count > 0 {

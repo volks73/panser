@@ -11,7 +11,7 @@
 //! formats as a series of bytes in hex notation. 
 //!
 //! Convert [JSON](http://www.json.org) from stdin to [MessagePack](http://msgpack.org) (Msgpack)
-//! and output to stdout. Panser converts JSON to Msgpack by default. See the `-h,--help` text for
+//! and write to stdout. Panser converts JSON to Msgpack by default. See the `-h,--help` text for
 //! more information and options. Specifically, see the `-f,--from` and `-t,--to` help text for
 //! lists of supported formats. 
 //!
@@ -21,8 +21,8 @@
 //! $
 //! ```
 //!
-//! Similarly, convert JSON from a file to Msgpack and output to stdout. If no file is specified,
-//! then input data is read continuously from stdin.
+//! Similarly, convert JSON from a file to Msgpack and write to stdout. If no file is specified,
+//! then data is read continuously from stdin until End-of-File (EOF) is reached (Ctrl+D).
 //!
 //! ```bash
 //! $ panser file.json | xxd -i
@@ -38,26 +38,13 @@
 //! $
 //! ```
 //!
-//! Convert JSON to pretty, more human readable JSON. The [Hjson](https://hjson.org) format is
-//! a more human readable format. The `-n` adds a newline character to the end of the output to
-//! place the prompt on the next line.
-//!
-//! ```bash
-//! $ echo '{"bool":true,"number":1.234}' | panser -n -t Hjson
-//! {
-//!     "bool": true,
-//!     "number": 1.234
-//! }
-//! $
-//! ```
-//!
 //! Write data to file instead of stdout. The output file will contain the binary MessagePack data.
 //!
 //! ```bash
 //! $ echo '{"bool":true,"number":1.234}' | panser -o file.msgpack
 //! ```
 //!
-//! Add sized-based framing to the output. Sized-based framing is prepending the total serialized
+//! Add size-based framing to the output. Size-based framing is prepending the total serialized
 //! data length as an unsigned 32-bit integer in Big Endian (Network Order), and it is often used
 //! to aid in buffering and creating stream-based applications. Note the first four bytes.
 //!
@@ -69,10 +56,9 @@
 //! $
 //! ```
 //!
-//! The same can be done for input to remove the data size. Note the use of the `-f` option to
+//! The same can be done for input to remove the size-based framing. Note the use of the `-f` option to
 //! indicate the input format is MessagePack and _not_ JSON. The first four bytes are removed.
-//! Sized-based framing can be added or removed from any supported format, not just MessagePack or
-//! other binary formats.
+//! Size-based framing can be added or removed from any supported format, not just MessagePack.
 //!
 //! ```bash
 //! $ echo '{"bool":true,"number":1.234}' | panser --sized-output | panser -f msgpack --sized-input | xxd -i
@@ -91,20 +77,24 @@
 //!   0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8, 0xb4, 0x39, 0x58$
 //! ```
 //!
-//! Using the delimited input and output is also a way to create an interactive console for panser.
+//! Using the delimited input and output is also a neat way to create an interactive console for panser.
 //!
 //! ```bash
-//! $ panser --delimited-input 0Ah --delimited-output 0Ah
-//! >{"bool":true"}
-//! ??bool?
-//! >{"number":1.234}
-//! ??number?
-//! >^D
+//! $ panser --delimited-input 0Ah --delimited-output 0Ah -f JSON -t Hjson
+//! {"bool":true"}
+//! {
+//!     "bool": true
+//! }
+//! {"bool":true,"number":1.234}
+//! {
+//!     "bool": true,
+//!     "number": 1.234
+//! }
 //! $
 //! ```
 //!
 //! Send data to a network device using the [nc](https://linux.die.net/man/1/nc) command. The JSON
-//! will be transcoded to framed MessagePack and streamed to the server, or client at the IP
+//! will be transcoded to size-based framed MessagePack and streamed to the server at the IP
 //! address and Port used with the `nc` command. This was actually the primary motivation for
 //! creating the `panser` application.
 //!

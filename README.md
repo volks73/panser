@@ -14,20 +14,18 @@ After accomplishing the primary goal of transcoding between JSON and MessagePack
 
 The [xxd](http://linuxcommand.org/man_pages/xxd1.html) utility is used to display binary formats as a series of bytes in hex notation. 
 
-Convert [JSON](http://www.json.org) from stdin to [MessagePack](http://msgpack.org) (Msgpack) and output to stdout. Panser converts JSON to Msgpack by default. See the `-h,--help` text for more information and options. Specifically, see the `-f,--from` and `-t,--to` help text for lists of supported formats. 
+Convert [JSON](http://www.json.org) from stdin to [MessagePack](http://msgpack.org) (Msgpack) and write to stdout. Panser converts JSON to Msgpack by default. See the `-h,--help` text for more information and options. Specifically, see the `-f,--from` and `-t,--to` help text for lists of supported formats. 
 
 ```bash
 $ echo '{"bool":true}' | panser | xxd -i
   0x81, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3
-$
 ```
 
-Similarly, convert JSON from a file to Msgpack and output to stdout. If no file is specified, then input data is read continuously from stdin. The file extension is used to determine the input data format unless the `-f,--from` option is explicitly used.
+Similarly, convert JSON from a file to Msgpack and write to stdout. If no file is specified, then input data is read continuously from stdin. The file extension is used to determine the input data format unless the `-f,--from` option is explicitly used.
 
 ```bash
 $ panser file.json | xxd -i
   0x81, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3
-$
 ```
 
 Redirection can also be used.
@@ -35,92 +33,81 @@ Redirection can also be used.
 ```bash
 $ panser < file.json | xxd -i
   0x81, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3
-$
 ```
 
-Convert JSON to pretty, more human readable JSON. The [Hjson](https://hjson.org) format is a more human readable format. The `-n` adds a newline character to the end of the output to place the prompt on the next line.
+Convert JSON to pretty, more human readable JSON. The [Hjson](https://hjson.org) format is a more human readable format.
 
 ```bash
-$ echo '{"bool":true,"number":1.234}' | panser -n -t Hjson
+$ echo '{"bool":true,"number":1.234}' | panser -t Hjson
 {
     "bool": true,
     "number": 1.234
 }
-$
 ```
 
-Write data to file instead of stdout. The output file will contain the binary MessagePack data.
+Write data to a file instead of stdout. The output file will contain the binary MessagePack data.
 
 ```bash
 $ echo '{"bool":true,"number":1.234}' | panser -o file.msgpack
 ```
 
-Add framing to the output. Framing is prepending the total serialized data length as an unsigned 32-bit integer in Big Endian (Network ORder), and it is often used to aid in creating stream-based applications for buffering. Note the first four bytes.
+Write data to a file instead of stdout, but use the file extension to determine the format. The output file will contain the binary data in the [CBOR](http://cbor.io/) format.
 
 ```bash
-$ echo '{"bool":true,"number":1.234}' | panser --framed-out | xxd -i
+$ echo '{"bool":true,"number":1.234}' | panser -o file.cbor
+```
+
+Add size-based framing to the output. [Framing](https://en.wikipedia.org/wiki/Frame_(networking)) is a process to create specific frames of data from a continuous stream. It aids in buffering, reducing memory usage, and simplifying network handling code in applications. Size-based framing is prepending the total serialized data length as an unsigned 32-bit integer in Big Endian (Network Order) to the frame, or message.
+
+```bash
+$ echo '{"bool":true,"number":1.234}' | panser --sized-output | xxd -i
   0x00, 0x00, 0x00, 0x17, 0x82, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3, 0xa6,
   0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8,
   0xb4, 0x39, 0x58
-$
 ```
 
-The same can be done for input to remove the framing. Note the use of the `-f` option to indicate the input format is MessagePack and _not_ JSON. The first four bytes are removed.  Framing can be added or removed from any supported format, not just MessagePack or other binary formats.
+The same can be done for input to remove the size-based framing. Note the use of the `-f` option to indicate the input format is MessagePack and _not_ JSON. The first four bytes are removed. Framing can be added or removed from any supported format, not just MessagePack.
 
 ```bash
-$ echo '{"bool":true,"number":1.234}' | panser --framed-out | panser -f msgpack --framed-input | xxd -i
+$ echo '{"bool":true,"number":1.234}' | panser --sized-output | panser -f msgpack --sized-input | xxd -i
   0x82, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3, 0xa6, 0x6e, 0x75, 0x6d, 0x62,
   0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8, 0xb4, 0x39, 0x58
-$
 ```
 
-Send data to a network device using the [nc](https://linux.die.net/man/1/nc) command. The JSON will be transcoded to framed MessagePack and streamed to the server, or client at the IP address and Port used with the `nc` command. This was actually the primary motivation for creating the `panser` application.
+An alternative form of framing uses a delimiter byte between frames, or messages. Panser can handle delimited-based framing in a similar manner to size-based framing. The `--delimited-input` and `--delimited-output` options take a value that is string representation of a single byte. A radix suffix can be added to indicate the byte notation: (b) binary, (d) decimal, (h) hexadecimal, or (o) octal. If no radix suffix is used, then hexadecimal notation is assumed. Here, the ASCII newline character (`\n`, 1010b, 10d, 0Ah, and 012o) is used to delimit the binary data.
 
 ```bash
-$ echo '{"bool":true,"numeber":1.234}' | panser --framed-output | nc 127.0.0.1 1234
+$ echo '{"bool":true,"number":1.234}' | panser --delimited-output 0Ah | panser -f msgpack --delimited-input 0Ah | xxd -i
+  0x82, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3, 0xa6, 0x6e, 0x75, 0x6d, 0x62,
+  0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8, 0xb4, 0x39, 0x58
 ```
 
-## Usage ##
+The delimited-based framing can be used to create an interactive console for panser.
 
-The contents of the `-h,--help` flag.
+```
+$ panser --delimited-output 0Ah --delimited-input 0Ah -t Hjson
+{"bool":true}
+{
+    "bool": true
+}
+{"bool":true,"number":1.234}
+{
+    "bool": true,
+    "number": 1.234,
+}
+```
 
-```text
-USAGE:
-    panser [FLAGS] [OPTIONS] [FILE]
+Data can be sent to a network device using the [nc](https://linux.die.net/man/1/nc) command. The JSON will be transcoded to size-based framed MessagePack and streamed to the server at the IP address and TCP port used with the `nc` command. This was actually the primary motivation for creating the `panser` application.
 
-FLAGS:
-        --framed-input       Indicates the first four bytes of the input is an
-                             unsigned 32-bit integer in Big Endian (Network
-                             Order) indicating the total length of the
-                             serialized data.
-        --framed-output      Prepends the total length of the serialized data
-                             as an unsigned 32-bit integer in Big Endian
-                             (Network Order).
-    -h, --help               Prints help information
-    -n, --include-newline    Writes the newline character (0x0A) to output at
-                             the end of serializing a message.
-    -V, --version            Prints version information
+```bash
+$ echo '{"bool":true,"numeber":1.234}' | panser --sized-output | nc 127.0.0.1 1234
+```
 
-OPTIONS:
-    -f, --from <from>        The input format. [values: Bincode, CBOR, Envy,
-                             Hjson, JSON, Msgpack, Pickle, TOML, URL, YAML]
-                             [default: JSON]
-    -o, --output <output>    A file to write the output instead of writing to
-                             stdout. If a file extension exists, then it is
-                             used to determined the format of the output
-                             serialized data. If a file extension does not
-                             exist, then the `-t,--to` option should be used or
-                             the MessagePack format is assumed.
-    -t, --to <to>            The output format. [values: Bincode, CBOR, Hjson,
-                             JSON, Msgpack, Pickle, TOML, URL, YAML] [default:
-                             Msgpack]
+Interestingly, panser can be used in conjunction with the [wsta](https://github.com/esphen/wsta) application to send and receive data from a web socket server.
 
-ARGS:
-    <FILE>    A file to read as input instead of reading from stdin. If a file
-              extension exists, then it is used to determine the format of the
-              serialized data contained within the file. If a file extension
-              does not exist, then the '-f,--from' option should be used or
-              JSON is assumed.
+```bash
+$ ehco '{"bool":true}' | panser | wsta 127.0.0.1:1234 | panser -f msgpack -t json
+{"bool":true}
 ```
 
 ## Install ##

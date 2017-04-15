@@ -16,23 +16,26 @@ The Panser project is a Command-Line Interface (CLI) application for (de)seriali
 
 # OPTIONS
 
+\--delimited-input=*DELIMITER*
+:   Indicates each frame, or message, within a stream of data is separated by a delimiter byte. The *DELIMITER* byte is specified as a string number. A radix suffix can be used to denote the notation: (b) binary, (d) decimal, (h) hexadecimal, or (o) octal. If no radix suffix is specified, then hexadecimal notation is assumed. For example, the ASCII newline character ('\n') can be supplied as the *DELIMITER* using any of the following values: 1010b, 10d, 0Ah, 012o, or 0A.
+
+\--delimited-output=*DELIMITER*
+:   Appends the *DELIMITER* byte to the end of the transcode frame, or message. The *DELIMITER* byte is specified as a string number. A radix suffix can be used to denote the notation: (b) binary, (d) decimal, (h) hexadecimal, or (o) octal. If no radix suffix is specified, then hexadecimal notation is assumed. For example, the ASCII newline character ('\n') can be supplied as the *DELIMITER* using any of the following values: 1010b, 10d, 0Ah, 012o, or 0A.
+
 -f *FORMAT*, \--from=*FORMAT*
 :   Specify input format.  *FORMAT* can be `Bincode`, `CBOR`, `Envy`, `Hjson`, `JSON`, `Msgpack`, `Pickle`, `TOML`, `URL`, or `YAML`. The *FORMAT* is case insensitive. The default is `JSON`.
 
--t *FORMAT*, \--to=*FORMAT*
-:   Specify output format.  *FORMAT* can be `Bincode`, `CBOR`, `Hjson`, `JSON`, `Msgpack`, `Pickle`, `TOML`, `URL`, or `YAML`. The *FORMAT* is case insensitive. The default is `Msgpack`.
-
-\--framed-input
-:   Indicates the first four bytes of the input is an unsigned 32-bit integer in Big Endian (Network ORder) indicating the total length of the serialzied data.
-
-\--framed-output
-:   Prepends the total length of the serialized data as an unsigned 32-bit integer in Big Endian (Network Order).
-
-\--include-newline
-:   Write the newline character (0x0A) to output at the end of transcoding the data.
-
 -o *FILE*, \--output=*FILE*
 :   Write output to *FILE* instead of *stdout*. If the `-t,--to` option is not used, the file extension for *FILE* is used to determine the format for the output.
+
+\--sized-input
+:   Indicates the first four bytes of the input is an unsigned 32-bit integer in Big Endian (Network ORder) indicating the total length of the serialzied data.
+
+\--sized-output
+:   Prepends the total length of the serialized data as an unsigned 32-bit integer in Big Endian (Network Order).
+
+-t *FORMAT*, \--to=*FORMAT*
+:   Specify output format.  *FORMAT* can be `Bincode`, `CBOR`, `Hjson`, `JSON`, `Msgpack`, `Pickle`, `TOML`, `URL`, or `YAML`. The *FORMAT* is case insensitive. The default is `Msgpack`.
 
 # EXAMPLES
 
@@ -48,13 +51,21 @@ This is equivalent to using a redirection of the file to stdin.
 
     panser < file.json
 
-Add framing to the output.
+Add size-based framing to the output.
 
-    echo '{"bool":true,"number":1.234} | panser --framed-output
+    echo '{"bool":true,"number":1.234} | panser --sized-output
 
-Remove framing from input.
+Remove size-based framing from input.
 
-    panser -f Msgpack --framed-input framed.msgpack
+    panser -f Msgpack --sized-input framed.msgpack
+
+Add delimited-based framing to the output.
+
+    echo '{"bool":true,"number":1.234} | panser --delimited-output 0A
+
+Remove delimited-based framing from input.
+
+    panser -f Msgpack --delimited-input 0A framed.msgpack
 
 # SEE ALSO
 
