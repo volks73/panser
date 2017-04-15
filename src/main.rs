@@ -136,37 +136,38 @@ use std::io::Write;
 /// The main entry point of the application. Parses command line options and starts the main
 /// program.
 fn main() {
-    // TODO: Add `-d,--delimited` option, which takes a value. The value is byte in hex notation,
-    // 0x## or possibly just ##, where ## is a hexadecimal digit (0-9 or A-F). When specified, this
-    // option enables continuous reading of input data where individual messages of serialized data
-    // are delimited by a "delimter" byte. The same delimiter byte is appended to the output. This
-    // applies the same delimiter to the input and output. The `--delimited-input` and
-    // `--delimited-output` options can be used to specify different delimiter bytes for the input
-    // and output, or if only one of the two streams are or should be delimited. 
-
-    // TODO: Add `-s,--sized` flag. This indicates the length of each message is the first
-    // four bytes of the input and the output should have the length of each message prepended to
-    // the data. The `--sized-input` and `--sized-output` flags can be used to
-    // independently specify the framing by length for the input and output.
-
     let matches = App::new("panser")
         .version(crate_version!())
         .about("An application for transcoding serialization formats.") 
+        .arg(Arg::with_name("delimited")
+             .help("Inidcates a complete message is delimited by the specified byte value and the byte should be appended to the output of each message. This is equivalent to using the '--delimited-input' and '--delimited-output' options with the same value. The delimiter byte can be specified as a (b) binary, (d) decimal, (h) hexadecimal, or (o) octal string value by using the character as a radix suffix. For example, '0Ah' would be the ASCII newline character specified as a hexadecimal string value. If no radix suffix is specified, then hexadecimal notation is assumed. This option cannot be used with the '--sized', '--sized-input', or '--sized-output' flags.")
+             .long("delimited")
+             .short("d")
+             .conflicts_with("delimited-input")
+             .conflicts_with("delimited-output")
+             .conflicts_with("sized")
+             .conflicts_with("sized-input")
+             .conflicts_with("sized-output")
+             .takes_value(true))
         .arg(Arg::with_name("delimited-input")
-             .help("Indicates a complete message is delimited by the specified byte value. The delimiter byte can be specified as a (b) binary, (d) decimal, (h) hexadecimal, or (o) octal string value by using the character as a suffix. For example, '0Ah' would be the newline character in ASCII hex. If no notation suffix is used, then hexadecimal notation is assumed for the byte value. This option cannot be used with the '--sized-input' flag.")
+             .help("Indicates a complete message is delimited by the specified byte value. The delimiter byte can be specified as a (b) binary, (d) decimal, (h) hexadecimal, or (o) octal string value by using the character as a radix suffix. For example, '0Ah' would be the ASCII newline character specified as a hexadecimal string value. If no radix suffix is used, then hexadecimal notation is assumed. This option cannot be used with the '--sized', '--sized-input', or '--delimited' options.")
              .long("delimited-input")
+             .conflicts_with("delimited")
+             .conflicts_with("sized")
              .conflicts_with("sized-input")
              .takes_value(true))
         .arg(Arg::with_name("delimited-output")
-             .help("Appends the delimiter byte to the message. The delimiter byte can be specified as a (b) binary, (d) decimal, (h) hexadecimal, or (o) octal string value by using the character as a suffix. For example, '0Ah' would be the newline character in ASCII hex. If no notation suffix is used, then hexadecimal notation is assumed for the byte value. This option cannot be used with the '--sized-input' flag.")
+             .help("Appends the delimiter byte to the message. The delimiter byte can be specified as a (b) binary, (d) decimal, (h) hexadecimal, or (o) octal string value by using the character as a radix suffix. For example, '0Ah' would be the ASCII newline character specified as a hexadecimal string value. If no radix suffix is used, then hexadecimal notation is assumed. This option cannot be used with the '--sized', '--sized-output', or '--delimited' options.")
              .long("delimited-output")
+             .conflicts_with("delimited")
+             .conflicts_with("sized")
              .conflicts_with("sized-output")
              .takes_value(true))
         .arg(Arg::with_name("FILE")
             .help("A file to read as input instead of reading from stdin. If a file extension exists, then it is used to determine the format of the serialized data contained within the file. If a file extension does not exist, then the '-f,--from' option should be used or JSON is assumed.")
             .index(1))
         .arg(Arg::with_name("from")
-            .help("The input format. [values: Bincode, CBOR, Envy, Hjson, JSON, Msgpack, Pickle, TOML, URL, YAML] [default: JSON]")
+            .help("The input format. The value is case insensitive. [values: Bincode, CBOR, Envy, Hjson, JSON, Msgpack, Pickle, TOML, URL, YAML] [default: JSON]")
             .long("from")
             .short("f")
             .hide_possible_values(true)
@@ -177,16 +178,29 @@ fn main() {
             .long("output")
             .short("o")
             .takes_value(true))
+        .arg(Arg::with_name("sized")
+            .help("Indicates the first four bytes of the input is an unsigned 32-bit integer in Big Endian (Network Order) that is the total size of the serialized data, and the data size should be prepended to the output. This flag cannot be used with the '--delimited', '--delimited-input', '--delimited-output', '--sized-input', or '--sized-output' options.")
+            .long("sized")
+            .short("s")
+            .conflicts_with("delimited")
+            .conflicts_with("delimited-input")
+            .conflicts_with("delimited-output")
+            .conflicts_with("sized-input")
+            .conflicts_with("sized-output"))
         .arg(Arg::with_name("sized-input")
-            .help("Indicates the first four bytes of the input is an unsigned 32-bit integer in Big Endian (Network Order) indicating the total length of the serialized data. This flag cannot be used when the '--delimited-input' option is specified.")
+            .help("Indicates the first four bytes of the input is an unsigned 32-bit integer in Big Endian (Network Order) indicating the total length of the serialized data. This flag cannot be used with the '--delimited', '--delimited-input', or '--sized' options.")
             .long("sized-input")
-            .conflicts_with("delimited-input"))
+            .conflicts_with("delimited")
+            .conflicts_with("delimited-input")
+            .conflicts_with("sized"))
         .arg(Arg::with_name("sized-output")
-            .help("Prepends the total length of the serialized data as an unsigned 32-bit integer in Big Endian (Network Order). This flag cannot be used when the '--delimited-output' option is specified.")
+            .help("Prepends the total length of the serialized data as an unsigned 32-bit integer in Big Endian (Network Order). This flag cannot be used with the '--delimited', '--delimited-output', or '--sized' options.")
             .long("sized-output")
-            .conflicts_with("delimited-output"))
+            .conflicts_with("delimited")
+            .conflicts_with("delimited-output")
+            .conflicts_with("sized"))
         .arg(Arg::with_name("to")
-            .help("The output format. [values: Bincode, CBOR, Hjson, JSON, Msgpack, Pickle, TOML, URL, YAML] [default: Msgpack]")
+            .help("The output format. The value is case insensitive. [values: Bincode, CBOR, Hjson, JSON, Msgpack, Pickle, TOML, URL, YAML] [default: Msgpack]")
             .long("to")
             .short("t")
             .hide_possible_values(true)
@@ -198,10 +212,10 @@ fn main() {
         .output(matches.value_of("output"))
         .from(value_t!(matches, "from", FromFormat).ok())
         .to(value_t!(matches, "to", ToFormat).ok())
-        .delimited_input(matches.value_of("delimited-input"))
-        .delimited_output(matches.value_of("delimited-output"))
-        .sized_input(matches.is_present("sized-input"))
-        .sized_output(matches.is_present("sized-output"))
+        .delimited_input(matches.value_of("delimited-input").or(matches.value_of("delimited")))
+        .delimited_output(matches.value_of("delimited-output").or(matches.value_of("delimited")))
+        .sized_input(matches.is_present("sized-input") || matches.is_present("sized"))
+        .sized_output(matches.is_present("sized-output") || matches.is_present("sized"))
         .run();
     match result {
         Ok(_) => {

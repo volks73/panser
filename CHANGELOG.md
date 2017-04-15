@@ -6,8 +6,10 @@ All notable changes to this project will be documented in this file, which is wr
 
 ### Added
 
+- The `-d,--delimited` option.
 - The `--delimited-input` option.
 - The `--delimited-output` option.
+- The `-s,--sized` flag.
 
 ### Changed
 

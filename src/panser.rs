@@ -50,42 +50,7 @@ impl Panser {
             sized_output: false,
         }
     }
-    
-    /// The input source.
-    ///
-    /// If `None`, which is the default, then stdin is used as the source. The value is a path to
-    /// a file.
-    pub fn input(mut self, input: Option<&str>) -> Self {
-        self.input = input.map(|i| i.to_owned());
-        self
-    }
 
-    /// The output destination.
-    ///
-    /// If `None`, which is the default, then stdout is used as the destination. The value is
-    /// a path to a file.
-    pub fn output(mut self, output: Option<&str>) -> Self {
-        self.output = output.map(|o| o.to_owned());
-        self
-    }
-
-    /// The format of the input.
-    ///
-    /// If `None`, which is the default, then the input format is assumed to be JSON.
-    pub fn from(mut self, from: Option<FromFormat>) -> Self {
-        self.from = from;
-        self
-    }
-
-    /// The format of the output.
-    ///
-    /// If `None`, which is the default, then the output format is assumed to be MessagePack
-    /// (Msgpack).
-    pub fn to(mut self, to: Option<ToFormat>) -> Self {
-        self.to = to;
-        self
-    }
-    
     /// Sets a delimiter byte for the input and changes to framed reading of the data.
     ///
     /// Data is read from the input source to the next delimiter byte. When the delimiter byte is
@@ -104,24 +69,29 @@ impl Panser {
         self
     }
 
-    /// Indicates the first four bytes is the total data length and changes to framed reading of
-    /// the data.
+    /// The format of the input.
     ///
-    /// The first four bytes are read as an unsigned 32-bit integer (u32) in Big Endian (Network
-    /// Order). Then N number of bytes are read, where N is the size converted from the first
-    /// four bytes. Once N bytes are read, all bytes up to the size are transcoded. This
-    /// continues until the End-of-File (EOF) is reached.
-    pub fn sized_input(mut self, sized: bool) -> Self {
-        self.sized_input = sized;
+    /// If `None`, which is the default, then the input format is assumed to be JSON.
+    pub fn from(mut self, from: Option<FromFormat>) -> Self {
+        self.from = from;
         self
     }
 
-    /// Prepends the length of the data to the output.
+    /// The input source.
     ///
-    /// The size of the output is prepended as an unsigned 32-bit integer (u32) in Big Endian
-    /// (Network Order).
-    pub fn sized_output(mut self, sized: bool) -> Self {
-        self.sized_output = sized;
+    /// If `None`, which is the default, then stdin is used as the source. The value is a path to
+    /// a file.
+    pub fn input(mut self, input: Option<&str>) -> Self {
+        self.input = input.map(|i| i.to_owned());
+        self
+    }
+
+    /// The output destination.
+    ///
+    /// If `None`, which is the default, then stdout is used as the destination. The value is
+    /// a path to a file.
+    pub fn output(mut self, output: Option<&str>) -> Self {
+        self.output = output.map(|o| o.to_owned());
         self
     }
 
@@ -212,6 +182,36 @@ impl Panser {
         }
         handle.join()?;
         Ok(())
+    }
+
+    /// Indicates the first four bytes is the total data length and changes to framed reading of
+    /// the data.
+    ///
+    /// The first four bytes are read as an unsigned 32-bit integer (u32) in Big Endian (Network
+    /// Order). Then N number of bytes are read, where N is the size converted from the first
+    /// four bytes. Once N bytes are read, all bytes up to the size are transcoded. This
+    /// continues until the End-of-File (EOF) is reached.
+    pub fn sized_input(mut self, sized: bool) -> Self {
+        self.sized_input = sized;
+        self
+    }
+
+    /// Prepends the length of the data to the output.
+    ///
+    /// The size of the output is prepended as an unsigned 32-bit integer (u32) in Big Endian
+    /// (Network Order).
+    pub fn sized_output(mut self, sized: bool) -> Self {
+        self.sized_output = sized;
+        self
+    }
+
+    /// The format of the output.
+    ///
+    /// If `None`, which is the default, then the output format is assumed to be MessagePack
+    /// (Msgpack).
+    pub fn to(mut self, to: Option<ToFormat>) -> Self {
+        self.to = to;
+        self
     }
 }
 
