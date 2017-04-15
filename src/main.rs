@@ -18,7 +18,6 @@
 //! ```bash
 //! $ echo '{"bool":true}' | panser | xxd -i
 //!   0x81, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3
-//! $
 //! ```
 //!
 //! Similarly, convert JSON from a file to Msgpack and write to stdout. If no file is specified,
@@ -27,7 +26,6 @@
 //! ```bash
 //! $ panser file.json | xxd -i
 //!   0x81, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3
-//! $
 //! ```
 //!
 //! Redirection can also be used.
@@ -35,7 +33,6 @@
 //! ```bash
 //! $ panser < file.json | xxd -i
 //!   0x81, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3
-//! $
 //! ```
 //!
 //! Write data to file instead of stdout. The output file will contain the binary MessagePack data.
@@ -53,7 +50,6 @@
 //!   0x00, 0x00, 0x00, 0x17, 0x82, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3, 0xa6,
 //!   0x6e, 0x75, 0x6d, 0x62, 0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8,
 //!   0xb4, 0x39, 0x58
-//! $
 //! ```
 //!
 //! The same can be done for input to remove the size-based framing. Note the use of the `-f` option to
@@ -64,11 +60,10 @@
 //! $ echo '{"bool":true,"number":1.234}' | panser --sized-output | panser -f msgpack --sized-input | xxd -i
 //!   0x82, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3, 0xa6, 0x6e, 0x75, 0x6d, 0x62,
 //!   0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8, 0xb4, 0x39, 0x58
-//! $
 //! ```
 //!
 //! Another form of framing data in a stream involves delimiting each frame with delimiter byte.
-//! Panser can also handle delimited-based framing of data. This uses the ASCII newline character
+//! Panser can also handle delimiter-based framing of data. This uses the ASCII newline character
 //! (`\n`, 10 dec, 0A hex, or 012 octal) as the delimiter.
 //!
 //! ```bash
@@ -80,7 +75,7 @@
 //! Using the delimited input and output is also a neat way to create an interactive console for panser.
 //!
 //! ```bash
-//! $ panser --delimited-input 0Ah --delimited-output 0Ah -f JSON -t Hjson
+//! $ panser -d 0Ah -t Hjson
 //! {"bool":true"}
 //! {
 //!     "bool": true
@@ -90,7 +85,6 @@
 //!     "bool": true,
 //!     "number": 1.234
 //! }
-//! $
 //! ```
 //!
 //! Send data to a network device using the [nc](https://linux.die.net/man/1/nc) command. The JSON
@@ -107,23 +101,11 @@
 //! | Code | Reason                                             |
 //! |------|----------------------------------------------------|
 //! | 0    | Success, no error                                  |
-//! | 1    | Failure, error transcoding the Bincode format      |
-//! | 2    | Failure, error transcoding the CBOR format         |
-//! | 3    | Failure, error deserializing environment variables |
-//! | 4    | Failure, generic error                             |
-//! | 5    | Failure, error transcoding the Hjson format        |
-//! | 6    | Failure, Input/Output (IO)                         |
-//! | 7    | Failure, error transcoding the JSON format         |
-//! | 8    | Failure, error decoding the MessagePack format     |
-//! | 9    | Failure, error encoding the MessagePack format     |
-//! | 10   | Failure, error parsing integer                     |
-//! | 11   | Failure, error transcoding the Pickle format       |
-//! | 12   | Failure, error decoding the TOML format            |
-//! | 13   | Failure, error encoding the TOML format            |
-//! | 14   | Failure, error with UTF-8 encoding                 |
-//! | 15   | Failure, error decoding the URL format             |
-//! | 16   | Failure, error encoding the URL format             |
-//! | 17   | Failure, error transcoding the YAML format         |
+//! | 1    | Failure, error transcoding                         |
+//! | 2    | Failure, generic error                             |
+//! | 3    | Failure, Input/Output (IO)                         |
+//! | 4    | Failure, error parsing integer                     |
+//! | 5    | Failure, error with UTF-8 encoding                 |
 
 #[macro_use]
 extern crate clap;
