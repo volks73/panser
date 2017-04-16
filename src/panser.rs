@@ -247,7 +247,7 @@ pub fn transcode(input: &[u8], from: FromFormat, to: ToFormat) -> Result<Vec<u8>
             FromFormat::Yaml => serde_yaml::from_slice::<serde_json::Value>(input)?,
         }
     };
-    let encoded_data = { 
+    Ok({ 
         match to {
             ToFormat::Bincode => bincode::serialize(&value, bincode::Infinite)?,
             ToFormat::Cbor => serde_cbor::to_vec(&value)?,
@@ -262,8 +262,7 @@ pub fn transcode(input: &[u8], from: FromFormat, to: ToFormat) -> Result<Vec<u8>
             ToFormat::Url => serde_urlencoded::to_string(&value)?.into_bytes(),
             ToFormat::Yaml => serde_yaml::to_vec(&value)?,
         }
-    };
-    Ok(encoded_data)
+    })
 }
 
 /// Converts a string to a delimiter byte.

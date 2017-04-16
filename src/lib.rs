@@ -186,6 +186,62 @@ impl FromStr for FromFormat {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub enum Radix {
+    Binary,
+    Decimal,
+    Hexadecimal,
+    Octal,
+}
+
+impl Radix {
+    pub fn possible_values() -> Vec<&'static str> {
+        vec![
+            "b", "B", "bin", "Bin", "BIN", "binary", "Binary", "BINARY",
+            "d", "D", "dec", "Dec", "DEC", "decimal", "Decimal", "DECIMAL",
+            "h", "H", "hex", "Hex", "HEX", "hexadecimal", "Hexadecimal", "HEXADECIMAL",
+            "o", "O", "oct", "Oct", "OCT", "octal", "Octal", "OCTAL",
+        ]
+    }
+}
+
+impl FromStr for Radix {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match &*s.to_string().to_lowercase() {
+            "b" => Ok(Radix::Binary),
+            "B" => Ok(Radix::Binary),
+            "bin" => Ok(Radix::Binary),
+            "binary" => Ok(Radix::Binary),
+            "d" => Ok(Radix::Decimal),
+            "D" => Ok(Radix::Decimal),
+            "dec" => Ok(Radix::Decimal),
+            "decimal" => Ok(Radix::Decimal),
+            "h" => Ok(Radix::Hexadecimal),
+            "H" => Ok(Radix::Hexadecimal),
+            "hex" => Ok(Radix::Hexadecimal),
+            "hexadecimal" => Ok(Radix::Hexadecimal),
+            "o" => Ok(Radix::Octal),
+            "O" => Ok(Radix::Octal),
+            "oct" => Ok(Radix::Octal),
+            "octal" => Ok(Radix::Octal),
+            _ => Err("No match")
+        }
+    }
+}
+
+impl fmt::Display for Radix {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self{
+            Radix::Binary => write!(f, "b, bin, or binary"),
+            Radix::Decimal => write!(f, "d, dec, or decimal"),
+            Radix::Hexadecimal => write!(f, "h, hex, or hexadecimal"),
+            Radix::Octal => write!(f, "o, oct, or octal"),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum Error {
     Bincode(bincode::Error),

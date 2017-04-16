@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+### Added
+
+- The `-b,--bytes` option to the command line interface (CLI). See [Issue #2](https://github.com/volks73/panser/issues/2).
+
 ### Changed
 
 - The `transcode` function to return the serialized bytes instead of writing to the output. See [Issue #1](https://github.com/volks73/panser/issues/1).

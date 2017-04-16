@@ -127,7 +127,7 @@ extern crate clap;
 extern crate panser;
 
 use clap::{App, Arg};
-use panser::{FromFormat, Panser, ToFormat};
+use panser::{FromFormat, Panser, Radix, ToFormat};
 use std::io::Write;
 
 /// The main entry point of the application. Parses command line options and starts the main
@@ -136,6 +136,13 @@ fn main() {
     let matches = App::new("panser")
         .version(crate_version!())
         .about("An application for transcoding serialization formats.") 
+        .arg(Arg::with_name("bytes")
+             .help("Changes the output to be a space-separated list of bytes, where each byte is represented as a numeric string based on the radix value. The serialized output data is convert to the format specified with the '-t,--to' option, but it is instead written to the output as a string. This is useful for debugging serialization formats and creating an interactive console. The radix value can be the first letter of the possible values ('b', 'd', 'h', or 'o') and the value is case insensitive. [values: bin, dec, hex, oct] [default: hex]")
+             .long("bytes")
+             .short("b")
+             .hide_possible_values(true)
+             .possible_values(&Radix::possible_values())
+             .takes_value(true))
         .arg(Arg::with_name("delimited")
              .help("Inidcates a complete message is delimited by the specified byte value and the byte should be appended to the output of each message. This is equivalent to using the '--delimited-input' and '--delimited-output' options with the same value. The delimiter byte can be specified as a (b) binary, (d) decimal, (h) hexadecimal, or (o) octal string value by using the character as a radix suffix. For example, '0Ah' would be the ASCII newline character specified as a hexadecimal string value. If no radix suffix is specified, then hexadecimal notation is assumed. This option cannot be used with the '--sized', '--sized-input', or '--sized-output' flags.")
              .long("delimited")
