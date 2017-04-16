@@ -7,6 +7,8 @@ license = "GPL-3.0"
 readme = "README.md"
 keywords = ["cli", "serialization", "transcode", "deserialization"]
 categories = ["encoding", "command-line-utilities", "value-formatting"]
+homepage = "https://github.com/volks73/panser"
+repository = "https://github.com/volks73/panser"
 
 [[bin]]
 name = "panser"
