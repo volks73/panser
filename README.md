@@ -1,12 +1,75 @@
 # Panser: A command line application for (de)serializing data #
 
-[About](#what-is-panser) | [Examples](#examples) | [Installation](#install) | [Build](#build)
+[About](#what-is-panser) | [Installation](#installation) | [Build](#build) | [Examples](#examples)  
 
 ## What is Panser? ##
 
 The Panser project is a Command-Line Interface (CLI) application for (de)serializing data formats in a UNIX, pipe-friendly manner. The project is primarily written in the [Rust](http://www.rust-lang.org) programming language. The idea is to have a single application for reading data in one format on stdin and writing the same data but in a different format to stdout. It is possible to read data from a file and write to another file, but the application is focused on creating streams of data that can be piped into a socket, such as a TCP stream. The primary motivator for the application is to read [JSON](http://www.json.org/) data and output to the [MessagePack](http://msgpack.org/index.html) format which could be used with a TCP stream to develop low-level Application Programming Interfaces (APIs) for network-enabled applications. The reverse is also a desired goal: reading in MessagePack data (binary, machine-readable) and transcoding it to JSON (text, human-readable).
 
 After accomplishing the primary goal of transcoding between JSON and MessagePack (Msgpack) formats, additional formats were gradually added using the [serde](https://github.com/serde-rs/serde) project and related libraries. Almost all of the formats listed in the [Data Formats](https://serde.rs/#data-formats) section of the [Overview](https://serde.rs/) for the serde project are implemented. The intention is to add more formats as more crates are developed using the serde framework.
+
+## Installation ##
+
+### Dependencies ###
+
+- [Cargo](https://crates.io/), v0.17 or higher
+- [Pandoc](http://pandoc.org), v1.18 or higher, optional
+- [Rust](https://www.rust-lang.org/), v1.16 or higher
+
+Download and install the latest version of [Rust](https://www.rust-lang.org) before proceeding. [Cargo](https://crates.io) will be installed automatically with Rust. [Pandoc](http://pandoc.org) is only need for installing and/or building the manual documentation, and it is optional.
+
+### Repository ###
+
+Run the following commands from a terminal:
+
+    $ git clone https://github.com/volks73/panser.git
+    $ cd panser
+    $ cargo install
+
+It might be desirable to change the install location by using the `--root` option with the `cargo install` command. See the `cargo install --help` for more information about installing a Rust binary crate using Cargo.
+
+### Source Distribution ###
+
+Obtain the appropriate source distribution as an archive file and run the following commands from a terminal:
+
+    $ tar xf panser-#.#.#.tar.gz
+    $ cd panser-#.#.#
+    $ cargo install
+
+where `#.#.#` is replaced with the version number of the source distribution, respectively. It might be desirable to change the install location by using the `--root` option with the `cargo install` command. See the `cargo install --help` for more information about installing a Rust binary crate using Cargo.
+
+### Documentation (Optional) ###
+
+The manual must currently be installed manually. The [Pandoc](http://pandoc.org) application must be installed to convert the manual in markdown to the appropriate format. First install the application, then from the root directory of the project, run the following commands from a terminal:
+
+    $ pandoc -s -t man -o man/panser.1 man/panser.1.md 
+    $ cp man/panser.1 /usr/share/man/man1
+
+## Build ##
+
+Download and install the same dependencies listed for installing the application, this includes the latest versions of [Rust](https://www.rust-lang.org), [Cargo](https://crates.io), and optionally [Pandoc](http://pandoc.org).
+
+### Application ###
+
+Run the following commands from a terminal:
+
+    $ git clone https://github.com/volks73/panser.git
+    $ cd panser
+    $ cargo build
+
+Or obtain the source as an archive and run the following commands from a terminal:
+
+    $ tar xf panser-#.#.#.tar.gz
+    $ cd panser-#.#.#
+    $ cargo build
+
+where `#.#.#` is replaced with the version number of the source distribution, respectively. The `--release` flag can be added to the cargo command to build a release application instead of a debug application. 
+
+### Documentation ###
+
+Obtain the appropriate source and run the following commands from the root directory of the project in a terminal:
+
+    $ pandoc -s -t man -o man/panser.1 man/panser.1.md
 
 ## Examples ##
 
@@ -126,69 +189,6 @@ $ ehco '{"bool":true}' | panser | wsta 127.0.0.1:1234 | panser -f msgpack -t jso
 {"bool":true}
 ```
 
-## Install ##
-
-### Dependencies ###
-
-- [Cargo](https://crates.io/), v0.17 or higher
-- [Pandoc](http://pandoc.org), v1.18 or higher, optional
-- [Rust](https://www.rust-lang.org/), v1.16 or higher
-
-Download and install the latest version of [Rust](https://www.rust-lang.org) before proceeding. [Cargo](https://crates.io) will be installed automatically with Rust. [Pandoc](http://pandoc.org) is only need for installing and/or building the manual documentation, and it is optional.
-
-### Repository ###
-
-Obtain the source from the git repository and run the following commands from a terminal:
-
-    $ git clone https://github.com/volks73/panser.git
-    $ cd panser
-    $ cargo install
-
-It might be desirable to change the install location by using the `--root` option with the `cargo install` command. See the `cargo install --help` for more information about installing a Rust binary crate using Cargo.
-
-### Source Distribution ###
-
-Obtain the appropriate source distribution as an archive file and run the following commands from a terminal:
-
-    $ tar xf panser-#.#.#.tar.gz
-    $ cd panser-#.#.#
-    $ cargo install
-
-where `#.#.#` is replaced with the version number of the source distribution, respectively. It might be desirable to change the install location by using the `--root` option with the `cargo install` command. See the `cargo install --help` for more information about installing a Rust binary crate using Cargo.
-
-### Documentation (Optional) ###
-
-The manual must currently be installed manually. The [Pandoc]() application must be installed to convert the manual in markdown to the appropriate format. First install the application, then from the root directory of the project, run the following commands from a terminal:
-
-    $ pandoc -s -t man -o man/panser.1 man/panser.1.md 
-    $ cp man/panser.1 /usr/share/man/man1
-
-## Build ##
-
-Download and install the same dependencies listed for installing the application, this includes the latest versions of [Rust](https://www.rust-lang.org), [Cargo](https://crates.io), and optionally [Pandoc](http://pandoc.org).
-
-### Application ###
-
-Obtain the appropriate source from the repository and run the following commands from a terminal:
-
-    $ git clone https://github.com/volks73/panser.git
-    $ cd panser
-    $ cargo build
-
-Or obtain the source as an archive and run the following commands from a terminal:
-
-    $ tar xf panser-#.#.#.tar.gz
-    $ cd panser-#.#.#
-    $ cargo build
-
-where `#.#.#` is replaced with the version number of the source distribution, respectively. The `--release` flag can be added to the cargo command to build a release application instead of a debug application. 
-
-### Documentation ###
-
-Obtain the appropriate source and run the following commands from the root directory of the project in a terminal:
-
-    $ pandoc -s -t man -o man/panser.1 man/panser.1.md
-
 ## License ##
 
 See the LICENSE file for more information about licensing and copyright.
@@ -196,4 +196,5 @@ See the LICENSE file for more information about licensing and copyright.
 ## Contributors ##
 
 See the AUTHORS file for information about contributors. Contributors are listed alphabetically by family name.
+
 
