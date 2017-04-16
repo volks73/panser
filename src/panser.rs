@@ -165,13 +165,15 @@ impl Panser {
             if let Some(files) = self.inputs.as_ref() {
                 files.iter()
                     .map(|f| {
-                        if let Some(e) = Path::new(f).extension() {
-                            FromFormat::from_str(
-                                e.to_str().unwrap_or("json")
-                            ).unwrap_or(FromFormat::Json)
-                        } else {
-                            FromFormat::Json
-                        }
+                        self.from.unwrap_or({
+                            if let Some(e) = Path::new(f).extension() {
+                                FromFormat::from_str(
+                                    e.to_str().unwrap_or("json")
+                                ).unwrap_or(FromFormat::Json)
+                            } else {
+                                FromFormat::Json
+                            }
+                        })
                     })
                     .collect()
             } else {
