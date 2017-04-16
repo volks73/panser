@@ -4,11 +4,13 @@
 
 ## What is Panser? ##
 
-The Panser project is a Command-Line Interface (CLI) application for (de)serializing data formats in a UNIX, pipe-friendly manner. The project is primarily written in the [Rust](http://www.rust-lang.org) programming language. The idea is to have a single application for reading data in one format on stdin and writing the same data but in a different format to stdout. It is possible to read data from a file and write to another file, but the application is focused on creating streams of data that can be piped into a socket, such as a TCP stream. The primary motivator for the application is to read [JSON](http://www.json.org/) data and output to the [MessagePack](http://msgpack.org/index.html) format which could be used with a TCP stream to develop low-level Application Programming Interfaces (APIs) for network-enabled applications. The reverse is also a desired goal: reading in MessagePack data (binary, machine-readable) and transcoding it to JSON (text, human-readable).
+The Panser project is a Command-Line Interface (CLI) application for (de)serializing data formats in a pipe-friendly manner. The project is primarily written in the [Rust](http://www.rust-lang.org) programming language. It can be installed on any [platform](https://forge.rust-lang.org/platform-support.html) supported by the Rust programming language, including: Linux, macOS, and  Windows. The idea is to have a single application for reading data in one format on stdin and writing the same data but in a different format to stdout. It is possible to read data from a file and write to another file, but the application is focused on creating streams of data that can be piped into a socket, such as a TCP stream. The primary motivator for the application is to read [JSON](http://www.json.org/) data and output to the [MessagePack](http://msgpack.org/index.html) format which could be used with a TCP stream to develop low-level Application Programming Interfaces (APIs) for network-enabled applications. The reverse is also a desired goal: reading in MessagePack data (binary, machine-readable) and transcoding it to JSON (text, human-readable).
 
 After accomplishing the primary goal of transcoding between JSON and MessagePack (Msgpack) formats, additional formats were gradually added using the [serde](https://github.com/serde-rs/serde) project and related libraries. Almost all of the formats listed in the [Data Formats](https://serde.rs/#data-formats) section of the [Overview](https://serde.rs/) for the serde project are implemented. The intention is to add more formats as more crates are developed using the serde framework.
 
 ## Installation ##
+
+Panser can be installed on any platform supported by the Rust programming language, including Linux, macOS, and Windows. It is possible to run Panser on Windows using the native command prompt (cmd.exe) or a terminal emulator, like [Mintty](https://mintty.github.io/) via [Cygwin](https://www.cygwin.com/).
 
 ### Dependencies ###
 
@@ -16,7 +18,7 @@ After accomplishing the primary goal of transcoding between JSON and MessagePack
 - [Pandoc](http://pandoc.org), v1.18 or higher, optional
 - [Rust](https://www.rust-lang.org/), v1.16 or higher
 
-Download and install the latest version of [Rust](https://www.rust-lang.org) before proceeding. [Cargo](https://crates.io) will be installed automatically with Rust. [Pandoc](http://pandoc.org) is only need for installing and/or building the manual documentation, and it is optional.
+Download and install the latest version of [Rust](https://www.rust-lang.org) before proceeding. [Cargo](https://crates.io) will be installed automatically with Rust. [Pandoc](http://pandoc.org) is only needed for installing and/or building the manual, and it is optional.
 
 ### Repository ###
 
@@ -40,7 +42,7 @@ where `#.#.#` is replaced with the version number of the source distribution, re
 
 ### Documentation (Optional) ###
 
-The manual must currently be installed manually. The [Pandoc](http://pandoc.org) application must be installed to convert the manual in markdown to the appropriate format. First install the application, then from the root directory of the project, run the following commands from a terminal:
+The manual must be installed manually. The [Pandoc](http://pandoc.org) application must be installed to convert the manual in [markdown](http://pandoc.org/MANUAL.html#pandocs-markdown) format to the appropriate [groff](https://www.gnu.org/software/groff/) format. First install the application, then from the root directory of the project, run the following commands from a terminal:
 
     $ pandoc -s -t man -o man/panser.1 man/panser.1.md 
     $ cp man/panser.1 /usr/share/man/man1
