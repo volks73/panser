@@ -212,14 +212,15 @@ fn main() {
             .takes_value(true))
         .get_matches();
     let result = Panser::new()
+        .delimited_output(matches.value_of("delimited-output").or(matches.value_of("delimited")))
+        .delimited_input(matches.value_of("delimited-input").or(matches.value_of("delimited")))
+        .display(value_t!(matches, "bytes", Radix).ok())
+        .from(value_t!(matches, "from", FromFormat).ok())
         .input(matches.value_of("FILE"))
         .output(matches.value_of("output"))
-        .from(value_t!(matches, "from", FromFormat).ok())
-        .to(value_t!(matches, "to", ToFormat).ok())
-        .delimited_input(matches.value_of("delimited-input").or(matches.value_of("delimited")))
-        .delimited_output(matches.value_of("delimited-output").or(matches.value_of("delimited")))
         .sized_input(matches.is_present("sized-input") || matches.is_present("sized"))
         .sized_output(matches.is_present("sized-output") || matches.is_present("sized"))
+        .to(value_t!(matches, "to", ToFormat).ok())
         .run();
     match result {
         Ok(_) => {

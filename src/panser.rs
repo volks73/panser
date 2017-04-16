@@ -32,18 +32,22 @@ use std::path::Path;
 use std::str::{self, FromStr};
 use std::sync::mpsc;
 use std::thread;
-use super::{Error, Framing, FromFormat, Result, ToFormat};
+use super::{Error, Framing, FromFormat, Radix, Result, ToFormat};
+
+type Sender = mpsc::Sender<Vec<u8>>;
+type Receiver = mpsc::Receiver<Vec<u8>>;
 
 /// A Builder for transcoding.
 pub struct Panser {
-    input: Option<String>,
-    output: Option<String>,
-    from: Option<FromFormat>,
-    to: Option<ToFormat>,
     delimited_input: Option<String>,
     delimited_output: Option<String>,
+    display: Option<Radix>,
+    from: Option<FromFormat>,
+    input: Option<String>,
+    output: Option<String>,
     sized_input: bool,
     sized_output: bool,
+    to: Option<ToFormat>,
 }
 
 impl Panser {
@@ -55,14 +59,15 @@ impl Panser {
     /// chained to change the defaults.
     pub fn new() -> Panser {
         Panser {
-            input: None,
-            output: None,
-            from: None,
-            to: None,
             delimited_input: None,
             delimited_output: None,
+            display: None,
+            from: None,
+            input: None,
+            output: None,
             sized_input: false,
             sized_output: false,
+            to: None,
         }
     }
 
@@ -81,6 +86,17 @@ impl Panser {
     /// The delimiter byte is appended to the output data.
     pub fn delimited_output(mut self, delimited: Option<&str>) -> Self {
         self.delimited_output = delimited.map(|d| d.to_owned());
+        self
+    }
+
+    /// Sets the written output to be a space-separated list of bytes represented as numeric
+    /// strings with a specific radix, or notation.
+    ///
+    /// The data is still transcoded to the `to` format, but it is written to the output as
+    /// a string. This is useful for debugging and creating an interactive console where humans are
+    /// reading the serialized output.
+    pub fn display(mut self, display: Option<Radix>) -> Self {
+        self.display = display;
         self
     }
 
@@ -188,7 +204,7 @@ impl Panser {
                 }
             }).unwrap();
         });
-        write(writer, from, to, output_framing, message_rx)?;
+        write(writer, from, to, output_framing, self.display, message_rx)?;
         handle.join()?;
         Ok(())
     }
@@ -295,7 +311,7 @@ fn to_framing_delimited(s: &String) -> Result<Option<Framing>> {
 /// Since the data is framed, the application can read messages as they as they are "streamed" into
 /// the reader without having to read the entire stream or file into memory. Messages can be
 /// transcoded as they arrive and continuous written to output.
-fn read_exact<R: BufRead>(mut reader: R, message_tx: mpsc::Sender<Vec<u8>>) -> Result<()> {
+fn read_exact<R: BufRead>(mut reader: R, tx: Sender) -> Result<()> {
     loop {
         let mut frame_length_buf = [0; 4];
         reader.read_exact(&mut frame_length_buf).map_err(|e| {
@@ -313,7 +329,7 @@ fn read_exact<R: BufRead>(mut reader: R, message_tx: mpsc::Sender<Vec<u8>>) -> R
                 _ => Error::Io(e)
             }
         })?;
-        message_tx.send(buf).unwrap();
+        tx.send(buf).unwrap();
     }
 }
 
@@ -324,7 +340,7 @@ fn read_exact<R: BufRead>(mut reader: R, message_tx: mpsc::Sender<Vec<u8>>) -> R
 /// Since the data is framed, the application can read messages as they as they are "streamed" into
 /// the reader without having to read the entire stream or file into memory. Messages can be
 /// transcoded as they arrive and continuous written to output.
-fn read_until<R: BufRead>(mut reader: R, delimiter: u8, message_tx: mpsc::Sender<Vec<u8>>) -> Result<()> {
+fn read_until<R: BufRead>(mut reader: R, delimiter: u8, tx: Sender) -> Result<()> {
     loop {
         let mut buf = Vec::new();
         let bytes_count = reader.read_until(delimiter, &mut buf).map_err(|e| {
@@ -339,7 +355,7 @@ fn read_until<R: BufRead>(mut reader: R, delimiter: u8, message_tx: mpsc::Sender
         if buf.is_empty() && bytes_count == 0 {
             break; // EOF
         } else {
-            message_tx.send(buf).unwrap();
+            tx.send(buf).unwrap();
         }
     }
     Ok(())
@@ -348,11 +364,11 @@ fn read_until<R: BufRead>(mut reader: R, delimiter: u8, message_tx: mpsc::Sender
 /// The producer loop for reading (input) and writing (output) serialized data.
 ///
 /// Determines the appropriating reading paradiagm based on the framing.
-fn read<R: BufRead>(mut reader: R, framing: Option<Framing>, message_tx: mpsc::Sender<Vec<u8>>) -> Result<()> {
+fn read<R: BufRead>(mut reader: R, framing: Option<Framing>, tx: Sender) -> Result<()> {
     if let Some(f) = framing {
         match f {
-            Framing::Sized => read_exact(reader, message_tx)?,
-            Framing::Delimited(delimiter) => read_until(reader, delimiter, message_tx)?,
+            Framing::Sized => read_exact(reader, tx)?,
+            Framing::Delimited(delimiter) => read_until(reader, delimiter, tx)?,
         }
     } else {
         // If framing is not used, then the end of the stream or file must be read before transcoding
@@ -361,9 +377,25 @@ fn read<R: BufRead>(mut reader: R, framing: Option<Framing>, message_tx: mpsc::S
         let bytes_count = reader.read_to_end(&mut buf)?;
         if bytes_count > 0 {
             if !buf.is_empty() {
-                message_tx.send(buf).unwrap();
+                tx.send(buf).unwrap();
             }
         } 
+    }
+    Ok(())
+}
+
+fn write_data<W: Write>(mut writer: W, data: &[u8], format: Option<Radix>) -> Result<()> {
+    if let Some(radix) = format {
+        for byte in data.iter() {
+            match radix {
+                Radix::Binary => write!(&mut writer, "{:b} ", byte)?,
+                Radix::Decimal => write!(&mut writer, "{} ", byte)?,
+                Radix::Hexadecimal => write!(&mut writer, "{:X} ", byte)?,
+                Radix::Octal => write!(&mut writer, "{:o} ", byte)?,
+            }
+        }
+    } else {
+        writer.write(&data)?;
     }
     Ok(())
 }
@@ -375,25 +407,25 @@ fn read<R: BufRead>(mut reader: R, framing: Option<Framing>, message_tx: mpsc::S
 /// a message is received, the serialized input data is transcoded based on the `from` format to
 /// the serialized output data based on the `to` format. After transcoding, the serialized output
 /// data is written to the output with the `writer` based on the `framing`.
-fn write<W: Write>(mut writer: W, from: FromFormat, to: ToFormat, framing: Option<Framing>, message_rx: mpsc::Receiver<Vec<u8>>) -> Result<()> {
+fn write<W: Write>(mut writer: W, from: FromFormat, to: ToFormat, framing: Option<Framing>, display: Option<Radix>, rx: Receiver) -> Result<()> {
     loop {
-        if let Ok(message) = message_rx.recv() {
-            let encoded_data = transcode(&message, from, to)?;
+        if let Ok(data) = rx.recv() {
+            let encoded_data = transcode(&data, from, to)?;
             if let Some(f) = framing {
                 match f {
                     Framing::Sized => {
                         let mut frame_length = [0; 4];
                         BigEndian::write_u32(&mut frame_length, encoded_data.len() as u32);
-                        writer.write(&frame_length)?;
+                        write_data(&mut writer, &frame_length, display)?;
                     },
                     _ => {},
                 }
             }
-            writer.write(&encoded_data)?;
+            write_data(&mut writer, &encoded_data, display)?;
             if let Some(f) = framing {
                 match f {
                     Framing::Delimited(delimiter) => {
-                        writer.write(&[delimiter; 1])?;
+                        write_data(&mut writer, &[delimiter; 1], display)?;
                     },
                     _ => {},
                 }
