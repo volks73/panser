@@ -1,5 +1,7 @@
 # Panser: A command line application for (de)serializing data #
 
+[About](#what-is-panser) | [Examples](#examples) | [Installation](#install) | [Build](#build)
+
 ## What is Panser? ##
 
 The Panser project is a Command-Line Interface (CLI) application for (de)serializing data formats in a UNIX, pipe-friendly manner. The project is primarily written in the [Rust](http://www.rust-lang.org) programming language. The idea is to have a single application for reading data in one format on stdin and writing the same data but in a different format to stdout. It is possible to read data from a file and write to another file, but the application is focused on creating streams of data that can be piped into a socket, such as a TCP stream. The primary motivator for the application is to read [JSON](http://www.json.org/) data and output to the [MessagePack](http://msgpack.org/index.html) format which could be used with a TCP stream to develop low-level Application Programming Interfaces (APIs) for network-enabled applications. The reverse is also a desired goal: reading in MessagePack data (binary, machine-readable) and transcoding it to JSON (text, human-readable).
