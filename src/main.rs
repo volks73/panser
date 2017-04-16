@@ -192,7 +192,7 @@ fn main() {
              .conflicts_with("sized-output")
              .takes_value(true))
         .arg(Arg::with_name("FILES")
-            .help("A file to read as input instead of reading from stdin. If a file extension exists, then it is used to determine the format of the serialized data contained within the file. If a file extension does not exist, then the '-f,--from' option should be used or JSON is assumed.")
+            .help("The files to read as input instead of reading from stdin. Unless the '-f,--from' option is used, the file extension for each file will be used to determine the input data format. If a file extension does not exist, the data format is assumed to be JSON. If the '-f,--from' option is used, then the same input data format is used for deserialization regardless of the file extensions.")
             .index(1)
             .multiple(true))
         .arg(Arg::with_name("from")
