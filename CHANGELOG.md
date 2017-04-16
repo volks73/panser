@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file, which is wr
 
 - The `transcode` function to return the serialized bytes instead of writing to the output. See [Issue #1](https://github.com/volks73/panser/issues/1).
 
+### Removed
+
+- Examples from the manual.
+
 ## [0.2.0] - 2017-04-15
 
 ### Added
