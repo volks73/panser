@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file, which is wr
 
 ### Added
 
-- The `-b,--bytes` option to the command line interface (CLI). See [Issue #2](https://github.com/volks73/panser/issues/2).
+- The `-r,--radix` option to the command line interface (CLI). See [Issue #2](https://github.com/volks73/panser/issues/2).
 
 ### Changed
 

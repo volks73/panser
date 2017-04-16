@@ -41,10 +41,10 @@ type Receiver = mpsc::Receiver<Vec<u8>>;
 pub struct Panser {
     delimited_input: Option<String>,
     delimited_output: Option<String>,
-    display: Option<Radix>,
     from: Option<FromFormat>,
     input: Option<String>,
     output: Option<String>,
+    radix: Option<Radix>,
     sized_input: bool,
     sized_output: bool,
     to: Option<ToFormat>,
@@ -61,10 +61,10 @@ impl Panser {
         Panser {
             delimited_input: None,
             delimited_output: None,
-            display: None,
             from: None,
             input: None,
             output: None,
+            radix: None,
             sized_input: false,
             sized_output: false,
             to: None,
@@ -86,17 +86,6 @@ impl Panser {
     /// The delimiter byte is appended to the output data.
     pub fn delimited_output(mut self, delimited: Option<&str>) -> Self {
         self.delimited_output = delimited.map(|d| d.to_owned());
-        self
-    }
-
-    /// Sets the written output to be a space-separated list of bytes represented as numeric
-    /// strings with a specific radix, or notation.
-    ///
-    /// The data is still transcoded to the `to` format, but it is written to the output as
-    /// a string. This is useful for debugging and creating an interactive console where humans are
-    /// reading the serialized output.
-    pub fn display(mut self, display: Option<Radix>) -> Self {
-        self.display = display;
         self
     }
 
@@ -123,6 +112,17 @@ impl Panser {
     /// a path to a file.
     pub fn output(mut self, output: Option<&str>) -> Self {
         self.output = output.map(|o| o.to_owned());
+        self
+    }
+
+    /// Sets the written output to be a space-separated list of bytes represented as numeric
+    /// strings with a specific radix, or notation.
+    ///
+    /// The data is still transcoded to the `to` format, but it is written to the output as
+    /// a string. This is useful for debugging and creating an interactive console where humans are
+    /// reading the serialized output.
+    pub fn radix(mut self, radix: Option<Radix>) -> Self {
+        self.radix = radix;
         self
     }
 
@@ -204,7 +204,7 @@ impl Panser {
                 }
             }).unwrap();
         });
-        write(writer, from, to, output_framing, self.display, message_rx)?;
+        write(writer, from, to, output_framing, self.radix, message_rx)?;
         handle.join()?;
         Ok(())
     }
@@ -384,13 +384,20 @@ fn read<R: BufRead>(mut reader: R, framing: Option<Framing>, tx: Sender) -> Resu
     Ok(())
 }
 
-fn write_data<W: Write>(mut writer: W, data: &[u8], format: Option<Radix>) -> Result<()> {
-    if let Some(radix) = format {
+/// Writes the serialized output data.
+///
+/// If the `display` is `None`, then the data is written "as-is". This means serialized binary
+/// data, like the MessagePack format, are written as binary data and may not be human readable.
+/// However, if the `display` is a `Radix` value, then the serialized output data is written as
+/// a space-separated list of bytes, where each byte is a string formatted using the radix. This
+/// can be used to visual, or display, serialized binary data in a more human readable fashion.
+fn write_data<W: Write>(mut writer: W, data: &[u8], radix: Option<Radix>) -> Result<()> {
+    if let Some(r) = radix {
         for byte in data.iter() {
-            match radix {
+            match r {
                 Radix::Binary => write!(&mut writer, "{:b} ", byte)?,
                 Radix::Decimal => write!(&mut writer, "{} ", byte)?,
-                Radix::Hexadecimal => write!(&mut writer, "{:X} ", byte)?,
+                Radix::Hexadecimal => write!(&mut writer, "{:0X} ", byte)?,
                 Radix::Octal => write!(&mut writer, "{:o} ", byte)?,
             }
         }
@@ -407,7 +414,10 @@ fn write_data<W: Write>(mut writer: W, data: &[u8], format: Option<Radix>) -> Re
 /// a message is received, the serialized input data is transcoded based on the `from` format to
 /// the serialized output data based on the `to` format. After transcoding, the serialized output
 /// data is written to the output with the `writer` based on the `framing`.
-fn write<W: Write>(mut writer: W, from: FromFormat, to: ToFormat, framing: Option<Framing>, display: Option<Radix>, rx: Receiver) -> Result<()> {
+///
+/// The `display` value is ignored for writing the delimiter if delimited-based framing is used.
+/// This makes it easier to create an interactive console with the application.
+fn write<W: Write>(mut writer: W, from: FromFormat, to: ToFormat, framing: Option<Framing>, radix: Option<Radix>, rx: Receiver) -> Result<()> {
     loop {
         if let Ok(data) = rx.recv() {
             let encoded_data = transcode(&data, from, to)?;
@@ -416,16 +426,24 @@ fn write<W: Write>(mut writer: W, from: FromFormat, to: ToFormat, framing: Optio
                     Framing::Sized => {
                         let mut frame_length = [0; 4];
                         BigEndian::write_u32(&mut frame_length, encoded_data.len() as u32);
-                        write_data(&mut writer, &frame_length, display)?;
+                        write_data(&mut writer, &frame_length, radix)?;
                     },
                     _ => {},
                 }
             }
-            write_data(&mut writer, &encoded_data, display)?;
+            write_data(&mut writer, &encoded_data, radix)?;
             if let Some(f) = framing {
                 match f {
                     Framing::Delimited(delimiter) => {
-                        write_data(&mut writer, &[delimiter; 1], display)?;
+                        // The delimiter should _not_ be written as a string if there is some
+                        // display value. An ASCII newline character ('\n') is often used as
+                        // a delimiter to create an interactive console. If the newline character
+                        // is written as a string byte, then the cursor will not appear after
+                        // space-separated list of bytes of the output. It is awkward looking. This
+                        // ensures the delimiter is always written as binary data and the cursor is
+                        // printed on the following line of the output when creating an interactive
+                        // console.
+                        writer.write(&[delimiter; 1])?;
                     },
                     _ => {},
                 }
