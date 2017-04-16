@@ -131,7 +131,7 @@ impl Panser {
                 Box::new(BufReader::new(io::stdin()))
             }
         };
-        let mut writer: Box<Write> = {
+        let writer: Box<Write> = {
             if let Some(o) = self.output.as_ref() {
                 Box::new(File::create(o)?)
             } else {
@@ -188,13 +188,7 @@ impl Panser {
                 }
             }).unwrap();
         });
-        loop {
-            if let Ok(message) = message_rx.recv() {
-                transcode(&message, &mut writer, from, to, output_framing)?;
-            } else {
-                break;
-            }
-        }
+        write(writer, from, to, output_framing, message_rx)?;
         handle.join()?;
         Ok(())
     }
@@ -232,13 +226,10 @@ impl Panser {
 
 /// Convert the input in one format to the output of another format.
 ///
-/// Ideally, the input would have a more generic `Read` or `BufRead` type. The input is of type
-/// `&[u8]` as opposed to a more generic `Read` or `BufRead` type like the output is a generic
-/// `Write` type because not all serialization libraries currently support the `from_reader` method
-/// or a method that deserializes from a reader, but all currently supported serialization
-/// libraries do support the `from_slice` or similar method for deserialization from a slice of
-/// bytes. 
-pub fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: ToFormat, framing: Option<Framing>) -> Result<()> {
+/// This does allocate memory, as not all serde-based libraries support allocation-free
+/// transcoding. However, if used in a producer-consumer architecture with framing,
+/// the memory usage should be minimized.
+pub fn transcode(input: &[u8], from: FromFormat, to: ToFormat) -> Result<Vec<u8>> {
     let value = {
         match from {
             FromFormat::Bincode => bincode::deserialize::<serde_json::Value>(input)?,
@@ -272,27 +263,7 @@ pub fn transcode<W: Write>(input: &[u8], output: &mut W, from: FromFormat, to: T
             ToFormat::Yaml => serde_yaml::to_vec(&value)?,
         }
     };
-    if let Some(f) = framing {
-        match f {
-            Framing::Sized => {
-                let mut frame_length = [0; 4];
-                BigEndian::write_u32(&mut frame_length, encoded_data.len() as u32);
-                output.write(&frame_length)?;
-            },
-            _ => {},
-        }
-    }
-    output.write(&encoded_data)?;
-    if let Some(f) = framing {
-        match f {
-            Framing::Delimited(delimiter) => {
-                output.write(&[delimiter; 1])?;
-            },
-            _ => {},
-        }
-    }
-    output.flush()?;
-    Ok(())
+    Ok(encoded_data)
 }
 
 /// Converts a string to a delimiter byte.
@@ -375,6 +346,8 @@ fn read_until<R: BufRead>(mut reader: R, delimiter: u8, message_tx: mpsc::Sender
     Ok(())
 }
 
+/// The producer loop for reading (input) and writing (output) serialized data.
+///
 /// Determines the appropriating reading paradiagm based on the framing.
 fn read<R: BufRead>(mut reader: R, framing: Option<Framing>, message_tx: mpsc::Sender<Vec<u8>>) -> Result<()> {
     if let Some(f) = framing {
@@ -392,6 +365,44 @@ fn read<R: BufRead>(mut reader: R, framing: Option<Framing>, message_tx: mpsc::S
                 message_tx.send(buf).unwrap();
             }
         } 
+    }
+    Ok(())
+}
+
+/// The consumer loop for the producer-consumer architecture for reading (input) and writing
+/// (output).
+///
+/// The consumer loop listens for serialized messages from the producer (input) loop. When
+/// a message is received, the serialized input data is transcoded based on the `from` format to
+/// the serialized output data based on the `to` format. After transcoding, the serialized output
+/// data is written to the output with the `writer` based on the `framing`.
+fn write<W: Write>(mut writer: W, from: FromFormat, to: ToFormat, framing: Option<Framing>, message_rx: mpsc::Receiver<Vec<u8>>) -> Result<()> {
+    loop {
+        if let Ok(message) = message_rx.recv() {
+            let encoded_data = transcode(&message, from, to)?;
+            if let Some(f) = framing {
+                match f {
+                    Framing::Sized => {
+                        let mut frame_length = [0; 4];
+                        BigEndian::write_u32(&mut frame_length, encoded_data.len() as u32);
+                        writer.write(&frame_length)?;
+                    },
+                    _ => {},
+                }
+            }
+            writer.write(&encoded_data)?;
+            if let Some(f) = framing {
+                match f {
+                    Framing::Delimited(delimiter) => {
+                        writer.write(&[delimiter; 1])?;
+                    },
+                    _ => {},
+                }
+            }
+            writer.flush()?;
+        } else {
+            break;
+        }
     }
     Ok(())
 }
