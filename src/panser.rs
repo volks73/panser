@@ -34,8 +34,8 @@ use std::sync::mpsc;
 use std::thread;
 use super::{Error, Framing, FromFormat, Radix, Result, ToFormat};
 
-type Sender = mpsc::Sender<Vec<u8>>;
-type Receiver = mpsc::Receiver<Vec<u8>>;
+type Sender = mpsc::Sender<serde_json::Value>;
+type Receiver = mpsc::Receiver<serde_json::Value>;
 
 /// A Builder for transcoding.
 pub struct Panser {
@@ -137,7 +137,7 @@ impl Panser {
     /// the input format is not JSON and a file with an appropriate extension is _not_ used, then the
     /// `from` parameter should not be `None`. A similar procedure is used for the output (to) format.
     pub fn run(self) -> Result<()> {
-        let (message_tx, message_rx) = mpsc::channel::<Vec<u8>>();
+        let (tx, rx) = mpsc::channel::<serde_json::Value>();
         // Use `BufRead` instead of `Read` to add additional reading methods, like `read_until`. The
         // `Send` trait is needed to move the reader to the read thread.
         let reader: Box<BufRead + Send> = {
@@ -195,7 +195,7 @@ impl Panser {
             }
         }, to_framing_delimited)?;
         let handle = thread::spawn(move || {
-            read(reader, input_framing, message_tx).or_else(|e| {
+            read(reader, from, input_framing, tx).or_else(|e| {
                 match e {
                     Error::Eof => {
                         Ok(())
@@ -204,7 +204,7 @@ impl Panser {
                 }
             }).unwrap();
         });
-        write(writer, from, to, output_framing, self.radix, message_rx)?;
+        write(writer, to, output_framing, self.radix, rx)?;
         handle.join()?;
         Ok(())
     }
@@ -240,21 +240,12 @@ impl Panser {
     }
 }
 
-/// Convert the input in one format to the output of another format.
+/// Deserialize to a universal, arbitrary value.
 ///
-/// This does allocate memory, as not all serde-based libraries support allocation-free
-/// transcoding. However, if used in a producer-consumer architecture with framing,
-/// the memory usage should be minimized.
-///
-/// # Examples
-///
-/// ```rust
-/// let input = "{\"bool\":true}";
-/// let output = panser::transcode(input.as_bytes(), FromFormat::JSON, ToFormat::Msgpack)?;
-/// assert_eq!(output, vec![0x81, 0xA4, 0x62, 0x6F, 0x6F, 0x6C, 0xC3]);
-/// ```
-pub fn transcode(input: &[u8], from: FromFormat, to: ToFormat) -> Result<Vec<u8>> {
-    let value = {
+/// The `serde_json::Value` type is used as a container for an arbitrary deserialized value. All
+/// formats are deserialized to a `serde_json::Value` type.
+pub fn deserialize(input: &[u8], from: FromFormat) -> Result<serde_json::Value> {
+    Ok({
         match from {
             FromFormat::Bincode => bincode::deserialize::<serde_json::Value>(input)?,
             FromFormat::Cbor => serde_cbor::from_slice::<serde_json::Value>(input)?,
@@ -270,7 +261,14 @@ pub fn transcode(input: &[u8], from: FromFormat, to: ToFormat) -> Result<Vec<u8>
             FromFormat::Url => serde_urlencoded::from_bytes::<serde_json::Value>(input)?,
             FromFormat::Yaml => serde_yaml::from_slice::<serde_json::Value>(input)?,
         }
-    };
+    })
+}
+
+/// Serialize from a universal, arbitrary value.
+///
+/// The `serde_json::Value` type is used as a container for an arbitrary value that can be
+/// serialized to any format.
+pub fn serialize(value: serde_json::Value, to: ToFormat) -> Result<Vec<u8>> {
     Ok({ 
         match to {
             ToFormat::Bincode => bincode::serialize(&value, bincode::Infinite)?,
@@ -288,6 +286,24 @@ pub fn transcode(input: &[u8], from: FromFormat, to: ToFormat) -> Result<Vec<u8>
         }
     })
 }
+
+/// Convert the input in one format to the output of another format.
+///
+/// This does allocate memory, as not all serde-based libraries support allocation-free
+/// transcoding. However, if used in a producer-consumer architecture with framing,
+/// the memory usage should be minimized.
+///
+/// # Examples
+///
+/// ```rust
+/// let input = "{\"bool\":true}";
+/// let output = panser::transcode(input.as_bytes(), FromFormat::JSON, ToFormat::Msgpack)?;
+/// assert_eq!(output, vec![0x81, 0xA4, 0x62, 0x6F, 0x6F, 0x6C, 0xC3]);
+/// ```
+pub fn transcode(input: &[u8], from: FromFormat, to: ToFormat) -> Result<Vec<u8>> {
+    serialize(deserialize(input, from)?, to)
+}
+
 
 /// Converts a string to a delimiter byte.
 ///
@@ -319,7 +335,7 @@ fn to_framing_delimited(s: &String) -> Result<Option<Framing>> {
 /// Since the data is framed, the application can read messages as they as they are "streamed" into
 /// the reader without having to read the entire stream or file into memory. Messages can be
 /// transcoded as they arrive and continuous written to output.
-fn read_exact<R: BufRead>(mut reader: R, tx: Sender) -> Result<()> {
+fn read_exact<R: BufRead>(mut reader: R, from: FromFormat, tx: Sender) -> Result<()> {
     loop {
         let mut frame_length_buf = [0; 4];
         reader.read_exact(&mut frame_length_buf).map_err(|e| {
@@ -337,7 +353,7 @@ fn read_exact<R: BufRead>(mut reader: R, tx: Sender) -> Result<()> {
                 _ => Error::Io(e)
             }
         })?;
-        tx.send(buf).unwrap();
+        tx.send(deserialize(&buf, from)?).unwrap();
     }
 }
 
@@ -348,7 +364,7 @@ fn read_exact<R: BufRead>(mut reader: R, tx: Sender) -> Result<()> {
 /// Since the data is framed, the application can read messages as they as they are "streamed" into
 /// the reader without having to read the entire stream or file into memory. Messages can be
 /// transcoded as they arrive and continuous written to output.
-fn read_until<R: BufRead>(mut reader: R, delimiter: u8, tx: Sender) -> Result<()> {
+fn read_until<R: BufRead>(mut reader: R, from: FromFormat, delimiter: u8, tx: Sender) -> Result<()> {
     loop {
         let mut buf = Vec::new();
         let bytes_count = reader.read_until(delimiter, &mut buf).map_err(|e| {
@@ -363,7 +379,7 @@ fn read_until<R: BufRead>(mut reader: R, delimiter: u8, tx: Sender) -> Result<()
         if buf.is_empty() && bytes_count == 0 {
             break; // EOF
         } else {
-            tx.send(buf).unwrap();
+            tx.send(deserialize(&buf, from)?).unwrap();
         }
     }
     Ok(())
@@ -372,11 +388,11 @@ fn read_until<R: BufRead>(mut reader: R, delimiter: u8, tx: Sender) -> Result<()
 /// The producer loop for reading (input) and writing (output) serialized data.
 ///
 /// Determines the appropriating reading paradiagm based on the framing.
-fn read<R: BufRead>(mut reader: R, framing: Option<Framing>, tx: Sender) -> Result<()> {
+fn read<R: BufRead>(mut reader: R, from: FromFormat, framing: Option<Framing>, tx: Sender) -> Result<()> {
     if let Some(f) = framing {
         match f {
-            Framing::Sized => read_exact(reader, tx)?,
-            Framing::Delimited(delimiter) => read_until(reader, delimiter, tx)?,
+            Framing::Sized => read_exact(reader, from, tx)?,
+            Framing::Delimited(delimiter) => read_until(reader, from, delimiter, tx)?,
         }
     } else {
         // If framing is not used, then the end of the stream or file must be read before transcoding
@@ -385,7 +401,7 @@ fn read<R: BufRead>(mut reader: R, framing: Option<Framing>, tx: Sender) -> Resu
         let bytes_count = reader.read_to_end(&mut buf)?;
         if bytes_count > 0 {
             if !buf.is_empty() {
-                tx.send(buf).unwrap();
+                tx.send(deserialize(&buf, from)?).unwrap();
             }
         } 
     }
@@ -425,10 +441,10 @@ fn write_data<W: Write>(mut writer: W, data: &[u8], radix: Option<Radix>) -> Res
 ///
 /// The `display` value is ignored for writing the delimiter if delimited-based framing is used.
 /// This makes it easier to create an interactive console with the application.
-fn write<W: Write>(mut writer: W, from: FromFormat, to: ToFormat, framing: Option<Framing>, radix: Option<Radix>, rx: Receiver) -> Result<()> {
+fn write<W: Write>(mut writer: W, to: ToFormat, framing: Option<Framing>, radix: Option<Radix>, rx: Receiver) -> Result<()> {
     loop {
         if let Ok(data) = rx.recv() {
-            let encoded_data = transcode(&data, from, to)?;
+            let encoded_data = serialize(data, to)?;
             if let Some(f) = framing {
                 match f {
                     Framing::Sized => {

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+### Added
+
+- The `serialize` and `deserialize` function to the library.
+
 ## [0.3.0] - 2017-04-16
 
 ### Added

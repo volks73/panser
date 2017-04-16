@@ -41,7 +41,9 @@ use std::num;
 use std::str::{self, FromStr};
 use std::result;
 
+pub use self::panser::deserialize;
 pub use self::panser::Panser;
+pub use self::panser::serialize;
 pub use self::panser::transcode;
 
 mod panser;
