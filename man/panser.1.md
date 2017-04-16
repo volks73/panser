@@ -16,7 +16,7 @@ The Panser project is a Command-Line Interface (CLI) application for (de)seriali
 
 # OPTIONS
 
-\---delimited=*DELIMITER*
+-d, \--delimited=*DELIMITER*
 :   Indicates each frame, or message, within a stream of data is separated by a delimiter byte and the same delimiter byte should be appended to the output after each frame, or message. The *DELIMITER* byte is specified as a string number. A radix suffix can be used to denote the notation: (b) binary, (d) decimal, (h) hexadecimal, or (o) octal. If no radix suffix is specified, then hexadecimal notation is assumed. For example, the ASCII newline character ('\n') can be supplied as the *DELIMITER* using any of the following values: 1010b, 10d, 0Ah, 012o, or 0A.
 
 \--delimited-input=*DELIMITER*
@@ -34,7 +34,7 @@ The Panser project is a Command-Line Interface (CLI) application for (de)seriali
 -r *RADIX*, \--radix=*RADIX*
 :   Changes the output to be a space-separated list of bytes, where each byte is a numeric string with the *RADIX*. The serialized input data is transcoded to the output format specified with the `-t,--to` option, but it is written to the output as a string. This si useful for debugging serialization formats and creating an interactive console with binary output data. Note, if delimited-basd framing is employed, the delimiter byte is _not_ included in the space-separated list of bytes. *RADIX* can be `b`, `bin`, `binary`, `d`, `dec`, `decimal`, `h`, `hex`, `hexadecimal`, `o`, `oct`, or `octal` and it is case insensitive.
 
-\--sized
+-s, \--sized
 :   Indicates the first four bytes of the input is an unsigned 32-bit integer in Big Endian (Network Order), which is the total size in bytes of the input frame, or message, and prepends the total size in bytes of the serialized data to the output frame, or message.
 
 \--sized-input
