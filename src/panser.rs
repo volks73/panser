@@ -245,6 +245,14 @@ impl Panser {
 /// This does allocate memory, as not all serde-based libraries support allocation-free
 /// transcoding. However, if used in a producer-consumer architecture with framing,
 /// the memory usage should be minimized.
+///
+/// # Examples
+///
+/// ```rust
+/// let input = "{\"bool\":true}";
+/// let output = panser::transcode(input.as_bytes(), FromFormat::JSON, ToFormat::Msgpack)?;
+/// assert_eq!(output, vec![0x81, 0xA4, 0x62, 0x6F, 0x6F, 0x6C, 0xC3]);
+/// ```
 pub fn transcode(input: &[u8], from: FromFormat, to: ToFormat) -> Result<Vec<u8>> {
     let value = {
         match from {

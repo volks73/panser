@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+## [0.3.0] - 2017-04-16
+
 ### Added
 
 - The `-r,--radix` option to the command line interface (CLI). See [Issue #2](https://github.com/volks73/panser/issues/2).
