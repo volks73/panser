@@ -48,7 +48,7 @@
 //!
 //! Similarly, convert JSON from a file to Msgpack and write to stdout. If no file is specified,
 //! then data is read continuously from stdin until End-of-File (EOF) is reached (Ctrl+D). The
-//! short names and possible value for the `-r,--radix` option is used for more succint usage.
+//! short names and possible value for the `-r,--radix` option is used for more succinct usage.
 //!
 //! ```bash
 //! $ panser -r h file.json
@@ -71,7 +71,7 @@
 //!   0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8, 0xb4, 0x39, 0x58
 //! ```
 //!
-//! If the `-r,--radix` option was used, then the contents of the output file would _not_ be
+//! If the `-r,--radix` option is used, then the contents of the output file would _not_ be
 //! Msgpack data, but the space-separated list of bytes as numeric strings. 
 //!
 //! ```bash

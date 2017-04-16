@@ -31,6 +31,9 @@ The Panser project is a Command-Line Interface (CLI) application for (de)seriali
 -o *FILE*, \--output=*FILE*
 :   Write output to *FILE* instead of *stdout*. If the `-t,--to` option is not used, the file extension for *FILE* is used to determine the format for the output.
 
+-r *RADIX*, \--radix=*RADIX*
+:   Changes the output to be a space-separated list of bytes, where each byte is a numeric string with the *RADIX*. The serialized input data is transcoded to the output format specified with the `-t,--to` option, but it is written to the output as a string. This si useful for debugging serialization formats and creating an interactive console with binary output data. Note, if delimited-basd framing is employed, the delimiter byte is _not_ included in the space-separated list of bytes. *RADIX* can be `b`, `bin`, `binary`, `d`, `dec`, `decimal`, `h`, `hex`, `hexadecimal`, `o`, `oct`, or `octal` and it is case insensitive.
+
 \--sized
 :   Indicates the first four bytes of the input is an unsigned 32-bit integer in Big Endian (Network Order), which is the total size in bytes of the input frame, or message, and prepends the total size in bytes of the serialized data to the output frame, or message.
 
@@ -42,36 +45,6 @@ The Panser project is a Command-Line Interface (CLI) application for (de)seriali
 
 -t *FORMAT*, \--to=*FORMAT*
 :   Specify output format. *FORMAT* can be `Bincode`, `CBOR`, `Hjson`, `JSON`, `Msgpack`, `Pickle`, `TOML`, `URL`, or `YAML`. The *FORMAT* is case insensitive. The default is `Msgpack`.
-
-# EXAMPLES
-
-Convert some JSON input to the Msgpack binary format. This is the default.
-
-    echo '{"bool":true}' | panser
-
-Convert some JSON input from a file to the Msgpack binary format.
-
-    panser file.json
-
-This is equivalent to using a redirection of the file to stdin.
-
-    panser < file.json
-
-Add size-based framing to the output.
-
-    echo '{"bool":true,"number":1.234} | panser --sized-output
-
-Remove size-based framing from input.
-
-    panser -f Msgpack --sized-input framed.msgpack
-
-Add delimiter-based framing to the output.
-
-    echo '{"bool":true,"number":1.234} | panser --delimited-output 0A
-
-Remove delimiter-based framing from input.
-
-    panser -f Msgpack --delimited-input 0A framed.msgpack
 
 # SEE ALSO
 
