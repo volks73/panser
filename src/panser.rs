@@ -42,7 +42,7 @@ pub struct Panser {
     delimited_input: Option<String>,
     delimited_output: Option<String>,
     from: Option<FromFormat>,
-    input: Option<String>,
+    inputs: Option<Vec<String>>,
     output: Option<String>,
     radix: Option<Radix>,
     sized_input: bool,
@@ -62,7 +62,7 @@ impl Panser {
             delimited_input: None,
             delimited_output: None,
             from: None,
-            input: None,
+            inputs: None,
             output: None,
             radix: None,
             sized_input: false,
@@ -101,8 +101,10 @@ impl Panser {
     ///
     /// If `None`, which is the default, then stdin is used as the source. The value is a path to
     /// a file.
-    pub fn input(mut self, input: Option<&str>) -> Self {
-        self.input = input.map(|i| i.to_owned());
+    pub fn inputs(mut self, inputs: Option<Vec<&str>>) -> Self {
+        self.inputs = inputs.map(|i| {
+            i.iter().map(|f| String::from(*f)).collect::<Vec<String>>()
+        });
         self
     }
 
@@ -140,11 +142,16 @@ impl Panser {
         let (tx, rx) = mpsc::channel::<serde_json::Value>();
         // Use `BufRead` instead of `Read` to add additional reading methods, like `read_until`. The
         // `Send` trait is needed to move the reader to the read thread.
-        let reader: Box<BufRead + Send> = {
-            if let Some(i) = self.input.as_ref() {
-                Box::new(BufReader::new(File::open(i)?))
+        let readers: Vec<Box<BufRead + Send>> = {
+            if let Some(i) = self.inputs.as_ref() {
+                // There has to be a way to do this with map and collect.
+                let mut files: Vec<Box<BufRead + Send>> = Vec::new();
+                for f in i {
+                    files.push(Box::new(BufReader::new(File::open(f)?)));
+                }
+                files
             } else {
-                Box::new(BufReader::new(io::stdin()))
+                vec![Box::new(BufReader::new(io::stdin()))]
             }
         };
         let writer: Box<Write> = {
@@ -154,19 +161,23 @@ impl Panser {
                 Box::new(io::stdout())
             }
         };
-        let from = self.from.unwrap_or({
-            if let Some(i) = self.input.as_ref() {
-                if let Some(e) = Path::new(i).extension() {
-                    FromFormat::from_str(
-                        e.to_str().unwrap_or("json")
-                    ).unwrap_or(FromFormat::Json)
-                } else {
-                    FromFormat::Json
-                }
+        let froms = {
+            if let Some(files) = self.inputs.as_ref() {
+                files.iter()
+                    .map(|f| {
+                        if let Some(e) = Path::new(f).extension() {
+                            FromFormat::from_str(
+                                e.to_str().unwrap_or("json")
+                            ).unwrap_or(FromFormat::Json)
+                        } else {
+                            FromFormat::Json
+                        }
+                    })
+                    .collect()
             } else {
-                FromFormat::Json
+                vec![self.from.unwrap_or(FromFormat::Json)]
             }
-        });
+        };
         let to = self.to.unwrap_or({
             if let Some(o) = self.output.as_ref() {
                 if let Some(e) = Path::new(o).extension() {
@@ -195,14 +206,17 @@ impl Panser {
             }
         }, to_framing_delimited)?;
         let handle = thread::spawn(move || {
-            read(reader, from, input_framing, tx).or_else(|e| {
-                match e {
-                    Error::Eof => {
-                        Ok(())
-                    },
-                    _ => Err(e),
-                }
-            }).unwrap();
+            for r in readers.into_iter().zip(froms) {
+                let (reader, from) = r;
+                read(reader, from, input_framing, &tx).or_else(|e| {
+                    match e {
+                        Error::Eof => {
+                            Ok(())
+                        },
+                        _ => Err(e),
+                    }
+                }).unwrap();
+            }
         });
         write(writer, to, output_framing, self.radix, rx)?;
         handle.join()?;
@@ -335,7 +349,7 @@ fn to_framing_delimited(s: &String) -> Result<Option<Framing>> {
 /// Since the data is framed, the application can read messages as they as they are "streamed" into
 /// the reader without having to read the entire stream or file into memory. Messages can be
 /// transcoded as they arrive and continuous written to output.
-fn read_exact<R: BufRead>(mut reader: R, from: FromFormat, tx: Sender) -> Result<()> {
+fn read_exact<R: BufRead>(mut reader: R, from: FromFormat, tx: &Sender) -> Result<()> {
     loop {
         let mut frame_length_buf = [0; 4];
         reader.read_exact(&mut frame_length_buf).map_err(|e| {
@@ -364,7 +378,7 @@ fn read_exact<R: BufRead>(mut reader: R, from: FromFormat, tx: Sender) -> Result
 /// Since the data is framed, the application can read messages as they as they are "streamed" into
 /// the reader without having to read the entire stream or file into memory. Messages can be
 /// transcoded as they arrive and continuous written to output.
-fn read_until<R: BufRead>(mut reader: R, from: FromFormat, delimiter: u8, tx: Sender) -> Result<()> {
+fn read_until<R: BufRead>(mut reader: R, from: FromFormat, delimiter: u8, tx: &Sender) -> Result<()> {
     loop {
         let mut buf = Vec::new();
         let bytes_count = reader.read_until(delimiter, &mut buf).map_err(|e| {
@@ -388,11 +402,11 @@ fn read_until<R: BufRead>(mut reader: R, from: FromFormat, delimiter: u8, tx: Se
 /// The producer loop for reading (input) and writing (output) serialized data.
 ///
 /// Determines the appropriating reading paradiagm based on the framing.
-fn read<R: BufRead>(mut reader: R, from: FromFormat, framing: Option<Framing>, tx: Sender) -> Result<()> {
+fn read<R: BufRead>(mut reader: R, from: FromFormat, framing: Option<Framing>, tx: &Sender) -> Result<()> {
     if let Some(f) = framing {
         match f {
-            Framing::Sized => read_exact(reader, from, tx)?,
-            Framing::Delimited(delimiter) => read_until(reader, from, delimiter, tx)?,
+            Framing::Sized => read_exact(reader, from, &tx)?,
+            Framing::Delimited(delimiter) => read_until(reader, from, delimiter, &tx)?,
         }
     } else {
         // If framing is not used, then the end of the stream or file must be read before transcoding
