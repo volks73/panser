@@ -6,7 +6,13 @@ All notable changes to this project will be documented in this file, which is wr
 
 ### Added
 
+- Deserializing (reading) multiple files and serializing (writing) to a single file. See [Issue #3](https://github.com/volks73/panser/issues/3).
 - The `serialize` and `deserialize` function to the library.
+- The `Error[#]` prefix to error messages, where `#` is the error/exit code.
+
+### Fixed
+
+- Error messages printing panic information. See [Issue #5](https://github.com/volks73/panser/issues/5).
 
 ## [0.3.0] - 2017-04-16
 

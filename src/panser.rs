@@ -28,6 +28,7 @@ use toml;
 use byteorder::{ByteOrder, BigEndian, ReadBytesExt};
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Cursor, ErrorKind, Write};
+use std::panic;
 use std::path::Path;
 use std::str::{self, FromStr};
 use std::sync::mpsc;
@@ -207,17 +208,47 @@ impl Panser {
                 Ok(None)
             }
         }, to_framing_delimited)?;
+        // Set the panic hook to do nothing. This suppresses the
+        //
+        // >thread '<unnamed>' panicked at 'Box<Any>', src/panser.rs:223
+        // >note: Run with `RUST_BACKTRACE=1` for a backtrace."
+        //
+        // message when an error occurs. The read thread panics on an error, but it is not really
+        // a panic. This ensure the application exits in a clean fashion everytime and with the
+        // appropriate error code without having to implement redundant error message printing and
+        // exiting. This probably shold be changed in the future to user a verbose flag to re-enable
+        // the full panic message when debugging.
+        panic::set_hook(Box::new(|_|{}));
         let handle = thread::spawn(move || {
             for r in readers.into_iter().zip(froms) {
                 let (reader, from) = r;
-                read(reader, from, input_framing, &tx).or_else(|e| {
+                let result = read(reader, from, input_framing, &tx).or_else(|e| {
                     match e {
                         Error::Eof => {
                             Ok(())
                         },
                         _ => Err(e),
                     }
-                }).unwrap();
+                });
+                // Do not use `unwrap` for the read function result. Using `unwrap` yields an
+                // `Unknown error: Any` message, which is not very useful. The `unwrap` method for
+                // a Result creates a custom string from the Error value, it does not pass the actual
+                // Error value. The type of error is lost, so when the panic occurs within this
+                // thread and it is "caught" by the `join` method later, the unwrapped panic
+                // message appears as a string and fails to be cast to the Error type. This yields
+                // a default Generic Error that is printed to stderr as "Unknown error: Any". The
+                // workaround to print more useful error message on an error from the read thread
+                // without having to write redundant error handling and keep the error type
+                // information is to use the panic! macro and pass the Error value directly to the
+                // Result of the `join` message. A Generic Error is still created with the `From`
+                // trait, but the Error type can be determined and a more appropriate error message
+                // with more useful information can be created.
+                //
+                // There is probably a better way to do all of this, but I have not found it yet.
+                match result {
+                    Ok(_) => {},
+                    Err(e) => panic!(e),
+                }
             }
         });
         write(writer, to, output_framing, self.radix, rx)?;

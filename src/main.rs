@@ -259,7 +259,8 @@ fn main() {
             std::process::exit(0);
         },
         Err(e) => {
-            writeln!(&mut std::io::stderr(), "{}", e).expect("Writing to stderr");
+            // TODO: Add red terminal color to the `Error[{}]` component of the message.
+            writeln!(&mut std::io::stderr(), "Error[{}]: {}", e.code(), e).expect("Writing to stderr");
             std::process::exit(e.code());
         }
     }

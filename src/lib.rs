@@ -383,7 +383,10 @@ impl From<envy::Error> for Error {
 
 impl From<Box<Any + Send + 'static>> for Error {
     fn from(err: Box<Any + Send + 'static>) -> Error {
-        Error::Generic(format!("{:?}", err))
+        err.downcast_ref::<Error>().map_or(
+            Error::Generic(format!("Unknown error: {:?}", err)), 
+            |e| Error::Generic(format!("{}", e))
+        )
     }
 }
 impl From<serde_hjson::Error> for Error {
