@@ -131,7 +131,7 @@ impl Panser {
 
     /// Create a producer-consumer architecture for reading and writing data. 
     ///
-    /// A separate thread is created and started for reading the input until until End-of-File (EOF) is
+    /// A separate thread is created and started for reading the input until End-of-File (EOF) is
     /// reached. If reading stdin, Ctrl+D can be used to force an EOF.
     ///
     /// If input is `None`, then stdin is used for input. If output is `None`, then stdout is used
