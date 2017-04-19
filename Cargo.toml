@@ -17,6 +17,7 @@ doctest = false
 
 [lib]
 doc = false
+doctest = false
 
 [dependencies]
 bincode = "0.7"
