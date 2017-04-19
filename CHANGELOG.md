@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+### [0.4.0] - 2017-04-17
+
 ### Added
 
 - Deserializing (reading) multiple files and serializing (writing) to a single file. See [Issue #3](https://github.com/volks73/panser/issues/3).
