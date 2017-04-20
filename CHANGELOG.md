@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+### Added
+
+- Integration tests.
+
 ### [0.4.0] - 2017-04-17
 
 ### Added
