@@ -142,3 +142,80 @@ fn sized_works() {
     assert_eq!(buf, vec![0x00, 0x00, 0x00, 0x07, 0x81, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3]);
 }
 
+#[test]
+fn delimited_works() {
+    let process = Command::new(exe_path())
+        .arg("-d")
+        .arg("0Ah")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("Create process");
+    process.stdin.expect("stdin").write_all(&vec![0x7b, 0x22, 0x62, 0x6f, 0x6f, 0x6c, 0x22, 0x3a, 0x74, 0x72, 0x75, 0x65, 0x7d, 0x0A]).expect("Write to stdin");
+    let mut buf: Vec<u8> = Vec::new();
+    process.stdout.expect("stdout").read_to_end(&mut buf).expect("Read from stdout");
+    assert_eq!(buf, vec![0x81, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3, 0x0A]);
+}
+
+#[test]
+fn delimited_input_works() {
+    let process = Command::new(exe_path())
+        .arg("--delimited-input")
+        .arg("0Ah")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("Create process");
+    process.stdin.expect("stdin").write_all(&vec![0x7b, 0x22, 0x62, 0x6f, 0x6f, 0x6c, 0x22, 0x3a, 0x74, 0x72, 0x75, 0x65, 0x7d, 0x0A]).expect("Write to stdin");
+    let mut buf: Vec<u8> = Vec::new();
+    process.stdout.expect("stdout").read_to_end(&mut buf).expect("Read from stdout");
+    assert_eq!(buf, vec![0x81, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3]);
+}
+
+#[test]
+fn delimited_output_works() {
+    let process = Command::new(exe_path())
+        .arg("--delimited-output")
+        .arg("0Ah")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("Create process");
+    process.stdin.expect("stdin").write_all(&vec![0x7b, 0x22, 0x62, 0x6f, 0x6f, 0x6c, 0x22, 0x3a, 0x74, 0x72, 0x75, 0x65, 0x7d]).expect("Write to stdin");
+    let mut buf: Vec<u8> = Vec::new();
+    process.stdout.expect("stdout").read_to_end(&mut buf).expect("Read from stdout");
+    assert_eq!(buf, vec![0x81, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3, 0x0A]);
+}
+
+#[test]
+fn delimited_input_sized_output_works() {
+    let process = Command::new(exe_path())
+        .arg("--delimited-input")
+        .arg("0Ah")
+        .arg("--sized-output")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("Create process");
+    process.stdin.expect("stdin").write_all(&vec![0x7b, 0x22, 0x62, 0x6f, 0x6f, 0x6c, 0x22, 0x3a, 0x74, 0x72, 0x75, 0x65, 0x7d, 0x0A]).expect("Write to stdin");
+    let mut buf: Vec<u8> = Vec::new();
+    process.stdout.expect("stdout").read_to_end(&mut buf).expect("Read from stdout");
+    assert_eq!(buf, vec![0x00, 0x00, 0x00, 0x07, 0x81, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3]);
+}
+
+#[test]
+fn sized_input_delimited_output_works() {
+    let process = Command::new(exe_path())
+        .arg("--sized-input")
+        .arg("--delimited-output")
+        .arg("0Ah")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("Create process");
+    process.stdin.expect("stdin").write_all(&vec![0x00, 0x00, 0x00, 0x0d, 0x7b, 0x22, 0x62, 0x6f, 0x6f, 0x6c, 0x22, 0x3a, 0x74, 0x72, 0x75, 0x65, 0x7d]).expect("Write to stdin");
+    let mut buf: Vec<u8> = Vec::new();
+    process.stdout.expect("stdout").read_to_end(&mut buf).expect("Read from stdout");
+    assert_eq!(buf, vec![0x81, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3, 0x0A]);
+}
+
