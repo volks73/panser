@@ -16,12 +16,12 @@
 // along with Panser.  If not, see <http://www.gnu.org/licenses/>.
 
 use bincode;
-use envy;
+//use envy;
 use rmp_serde;
 use serde_cbor;
 use serde_json;
-use serde_pickle;
-use serde_urlencoded;
+//use serde_pickle;
+//use serde_urlencoded;
 use serde_yaml;
 use toml;
 
@@ -296,16 +296,19 @@ pub fn deserialize(input: &[u8], from: FromFormat) -> Result<serde_json::Value> 
         match from {
             FromFormat::Bincode => bincode::deserialize::<serde_json::Value>(input)?,
             FromFormat::Cbor => serde_cbor::from_slice::<serde_json::Value>(input)?,
-            FromFormat::Envy => envy::from_env::<serde_json::Value>()?,
+            FromFormat::Envy => unimplemented!(),
+            //FromFormat::Envy => envy::from_env::<serde_json::Value>()?,
             // TODO: Change to use Hjson serde library. Until the Hjson crate is updated to work
             // with serde v0.9 or newer, the serde_json create is used. The Hjson crate currently
             // uses serde v0.8 and causes compiler errors.
             FromFormat::Hjson => serde_json::from_slice::<serde_json::Value>(input)?,
             FromFormat::Json => serde_json::from_slice::<serde_json::Value>(input)?,
             FromFormat::Msgpack => rmp_serde::from_slice::<serde_json::Value>(input)?,
-            FromFormat::Pickle => serde_pickle::from_slice::<serde_json::Value>(input)?,
+            //FromFormat::Pickle => serde_pickle::from_slice::<serde_json::Value>(input)?,
+            FromFormat::Pickle => unimplemented!(),
             FromFormat::Toml => toml::from_slice::<serde_json::Value>(input)?,
-            FromFormat::Url => serde_urlencoded::from_bytes::<serde_json::Value>(input)?,
+            //FromFormat::Url => serde_urlencoded::from_bytes::<serde_json::Value>(input)?,
+            FromFormat::Url => unimplemented!(),
             FromFormat::Yaml => serde_yaml::from_slice::<serde_json::Value>(input)?,
         }
     })
@@ -326,9 +329,11 @@ pub fn serialize(value: serde_json::Value, to: ToFormat) -> Result<Vec<u8>> {
             ToFormat::Hjson => serde_json::to_vec_pretty(&value)?, 
             ToFormat::Json => serde_json::to_vec(&value)?,
             ToFormat::Msgpack => rmp_serde::to_vec(&value)?,
-            ToFormat::Pickle => serde_pickle::to_vec(&value, true)?,
+            //ToFormat::Pickle => serde_pickle::to_vec(&value, true)?,
+            ToFormat::Pickle => unimplemented!(),
             ToFormat::Toml => toml::to_vec(&value)?,
-            ToFormat::Url => serde_urlencoded::to_string(&value)?.into_bytes(),
+            //ToFormat::Url => serde_urlencoded::to_string(&value)?.into_bytes(),
+            ToFormat::Url => unimplemented!(),
             ToFormat::Yaml => serde_yaml::to_vec(&value)?,
         }
     })

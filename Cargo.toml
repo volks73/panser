@@ -20,17 +20,17 @@ doc = false
 doctest = false
 
 [dependencies]
-bincode = "0.7"
+bincode = "0.8"
 byteorder = "1"
 clap = "2.23"
-envy = "0.2"
-serde = "0.9"
-serde_cbor = "0.5"
-serde_json = "0.9"
-serde-hjson = "0.8"
-serde-pickle = "0.3"
-serde_urlencoded = "0.4"
-serde_yaml = "0.6"
-toml = "0.3"
-rmp-serde = "0.12"
+#envy = "0.2"
+serde = "1.0.0"
+serde_cbor = "0.6"
+serde_json = "1.0.0"
+#serde-hjson = "0.8"
+#serde-pickle = "0.3"
+#serde_urlencoded = "0.4"
+serde_yaml = "0.7"
+toml = "0.4"
+rmp-serde = "0.13"
 
