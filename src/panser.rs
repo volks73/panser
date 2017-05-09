@@ -21,7 +21,7 @@ use rmp_serde;
 use serde_cbor;
 use serde_json;
 //use serde_pickle;
-//use serde_urlencoded;
+use serde_urlencoded;
 use serde_yaml;
 use toml;
 
@@ -307,8 +307,7 @@ pub fn deserialize(input: &[u8], from: FromFormat) -> Result<serde_json::Value> 
             //FromFormat::Pickle => serde_pickle::from_slice::<serde_json::Value>(input)?,
             FromFormat::Pickle => unimplemented!(),
             FromFormat::Toml => toml::from_slice::<serde_json::Value>(input)?,
-            //FromFormat::Url => serde_urlencoded::from_bytes::<serde_json::Value>(input)?,
-            FromFormat::Url => unimplemented!(),
+            FromFormat::Url => serde_urlencoded::from_bytes::<serde_json::Value>(input)?,
             FromFormat::Yaml => serde_yaml::from_slice::<serde_json::Value>(input)?,
         }
     })
@@ -332,8 +331,7 @@ pub fn serialize(value: serde_json::Value, to: ToFormat) -> Result<Vec<u8>> {
             //ToFormat::Pickle => serde_pickle::to_vec(&value, true)?,
             ToFormat::Pickle => unimplemented!(),
             ToFormat::Toml => toml::to_vec(&value)?,
-            //ToFormat::Url => serde_urlencoded::to_string(&value)?.into_bytes(),
-            ToFormat::Url => unimplemented!(),
+            ToFormat::Url => serde_urlencoded::to_string(&value)?.into_bytes(),
             ToFormat::Yaml => serde_yaml::to_vec(&value)?,
         }
     })
