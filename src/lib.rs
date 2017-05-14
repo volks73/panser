@@ -294,24 +294,24 @@ impl Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Error::Bincode(ref message) => write!(f, "{}", message),
-            Error::Cbor(ref message) => write!(f, "{}", message),
+            Error::Bincode(ref err) => write!(f, "{}", err),
+            Error::Cbor(ref err) => write!(f, "{}", err),
             //Error::Envy(ref message) => write!(f, "{}", message),
             Error::Eof => write!(f, "End of file reached"),
             Error::Generic(ref message) => write!(f, "{}", message),
             //Error::Hjson(ref message) => write!(f, "{}", message),
-            Error::Io(ref message) => write!(f, "{}", message),
-            Error::Json(ref message) => write!(f, "{}", message),
-            Error::MsgpackDecode(ref message) => write!(f, "{}", message),
-            Error::MsgpackEncode(ref message) => write!(f, "{}", message),
-            Error::ParseInt(ref message) => write!(f, "{}", message),
-            Error::Pickle(ref message) => write!(f, "{}", message),
-            Error::TomlDecode(ref message) => write!(f, "{}", message),
-            Error::TomlEncode(ref message) => write!(f, "{}", message),
-            Error::UrlDecode(ref message) => write!(f, "{}", message),
-            Error::UrlEncode(ref message) => write!(f, "{}", message),
-            Error::Utf8(ref message) => write!(f, "{}", message),
-            Error::Yaml(ref message) => write!(f, "{}", message),
+            Error::Io(ref err) => write!(f, "{}", err),
+            Error::Json(ref err) => write!(f, "{}", err),
+            Error::MsgpackDecode(ref err) => write!(f, "{}", err),
+            Error::MsgpackEncode(ref err) => write!(f, "{}", err),
+            Error::ParseInt(ref err) => write!(f, "{}", err),
+            Error::Pickle(ref err) => write!(f, "{}", err),
+            Error::TomlDecode(ref err) => write!(f, "{}", err),
+            Error::TomlEncode(ref err) => write!(f, "{}", err),
+            Error::UrlDecode(ref err) => write!(f, "{}", err),
+            Error::UrlEncode(ref err) => write!(f, "{}", err),
+            Error::Utf8(ref err) => write!(f, "{}", err),
+            Error::Yaml(ref err) => write!(f, "{}", err),
         }
     }
 }
