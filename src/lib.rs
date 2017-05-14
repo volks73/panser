@@ -28,7 +28,7 @@ extern crate serde;
 extern crate serde_cbor;
 //extern crate serde_hjson;
 extern crate serde_json;
-//extern crate serde_pickle;
+extern crate serde_pickle;
 extern crate serde_urlencoded;
 extern crate serde_yaml;
 extern crate toml;
@@ -257,7 +257,7 @@ pub enum Error {
     MsgpackDecode(rmp_serde::decode::Error),
     MsgpackEncode(rmp_serde::encode::Error),
     ParseInt(num::ParseIntError),
-    //Pickle(serde_pickle::Error),
+    Pickle(serde_pickle::Error),
     TomlDecode(toml::de::Error),
     TomlEncode(toml::ser::Error),
     Utf8(str::Utf8Error),
@@ -280,7 +280,7 @@ impl Error {
             Error::MsgpackDecode(..) => 1,
             Error::MsgpackEncode(..) => 1,
             Error::ParseInt(..) => 4,
-            //Error::Pickle(..) => 1,
+            Error::Pickle(..) => 1,
             Error::TomlDecode(..) => 1,
             Error::TomlEncode(..) => 1,
             Error::Utf8(..) => 5,
@@ -305,7 +305,7 @@ impl fmt::Display for Error {
             Error::MsgpackDecode(ref message) => write!(f, "{}", message),
             Error::MsgpackEncode(ref message) => write!(f, "{}", message),
             Error::ParseInt(ref message) => write!(f, "{}", message),
-            //Error::Pickle(ref message) => write!(f, "{}", message),
+            Error::Pickle(ref message) => write!(f, "{}", message),
             Error::TomlDecode(ref message) => write!(f, "{}", message),
             Error::TomlEncode(ref message) => write!(f, "{}", message),
             Error::UrlDecode(ref message) => write!(f, "{}", message),
@@ -330,7 +330,7 @@ impl StdError for Error {
             Error::MsgpackDecode(..) => "MessagePack decoding error",
             Error::MsgpackEncode(..) => "MessagePack encoding error",
             Error::ParseInt(..) => "Parse integer error",
-            //Error::Pickle(..) => "Pickle error",
+            Error::Pickle(..) => "Pickle error",
             Error::TomlDecode(..) => "TOML decoding error",
             Error::TomlEncode(..) => "TOML encoding error",
             Error::UrlDecode(..) => "URL decoding error",
@@ -351,7 +351,7 @@ impl StdError for Error {
             Error::MsgpackDecode(ref err) => Some(err),
             Error::MsgpackEncode(ref err) => Some(err),
             Error::ParseInt(ref err) => Some(err),
-            //Error::Pickle(ref err) => Some(err),
+            Error::Pickle(ref err) => Some(err),
             Error::TomlDecode(ref err) => Some(err),
             Error::TomlEncode(ref err) => Some(err),
             Error::UrlDecode(ref err) => Some(err),
@@ -426,11 +426,11 @@ impl From<num::ParseIntError> for Error {
     }
 }
 
-//impl From<serde_pickle::Error> for Error {
-    //fn from(err: serde_pickle::Error) -> Error {
-        //Error::Pickle(err)
-    //}
-//}
+impl From<serde_pickle::Error> for Error {
+    fn from(err: serde_pickle::Error) -> Error {
+        Error::Pickle(err)
+    }
+}
 
 impl From<toml::ser::Error> for Error {
     fn from(err: toml::ser::Error) -> Error {

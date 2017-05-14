@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file, which is wr
 ### Added
 
 - Integration tests.
+- Serde v1.0 support for dependencies.
 
 ### [0.4.0] - 2017-04-17
 
