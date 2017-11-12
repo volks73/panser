@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file, which is wr
 
 ## [Unreleased][unreleased]
 
+### Added
+
+- Colorized error statements. See [Issue #6](https://github.com/volks73/panser/issues/6).
+
+### Changed
+
+- The error statement format and error descriptions to be more human readable.
+
 ## [0.4.1] - 2017-05-30
 
 ### Added
