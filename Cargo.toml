@@ -20,6 +20,8 @@ doc = false
 doctest = false
 
 [dependencies]
+ansi_term = "0.10"
+atty = "0.2"
 bincode = "0.8"
 byteorder = "1"
 clap = "2.23"

@@ -153,17 +153,28 @@
 //! | 4    | Failure, error parsing integer                     |
 //! | 5    | Failure, error with UTF-8 encoding                 |
 
-#[macro_use]
-extern crate clap;
+extern crate ansi_term;
+extern crate atty;
+#[macro_use] extern crate clap;
 extern crate panser;
 
+use ansi_term::Colour;
 use clap::{App, Arg};
 use panser::{FromFormat, Panser, Radix, ToFormat};
+use std::error::Error;
 use std::io::Write;
+
+const ERROR_COLOR: Colour = Colour::Fixed(9); // bright red
 
 /// The main entry point of the application. Parses command line options and starts the main
 /// program.
 fn main() {
+    // Based on documentation for the ansi_term crate, Windows 10 supports ANSI escape characters,
+    // but it must be enabled first. The ansi_term crate provides a function for enabling ANSI
+    // support in Windows, but it is conditionally compiled and only exists for Windows builds. To
+    // avoid build errors on non-windows platforms, a cfg guard should be put in place.
+    #[cfg(windows)] ansi_term::enable_ansi_support().unwrap();
+
     let matches = App::new("panser")
         .version(crate_version!())
         .about("An application for transcoding serialization formats.") 
@@ -259,8 +270,12 @@ fn main() {
             std::process::exit(0);
         },
         Err(e) => {
-            // TODO: Add red terminal color to the `Error[{}]` component of the message.
-            writeln!(&mut std::io::stderr(), "Error[{}]: {}", e.code(), e).expect("Writing to stderr");
+            let mut tag = format!("Error[{}] ({})", e.code(), e.description());
+            if atty::is(atty::Stream::Stderr) {
+                tag = ERROR_COLOR.paint(tag).to_string()
+            }
+            writeln!(&mut std::io::stderr(), "{}: {}", tag, e)
+                .expect("Writing to stderr");
             std::process::exit(e.code());
         }
     }
