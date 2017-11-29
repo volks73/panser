@@ -46,5 +46,3 @@ The Panser project is a Command-Line Interface (CLI) application for (de)seriali
 -t *FORMAT*, \--to=*FORMAT*
 :   Specify output format. *FORMAT* can be `Bincode`, `CBOR`, `Hjson`, `JSON`, `Msgpack`, `Pickle`, `TOML`, `URL`, or `YAML`. The *FORMAT* is case insensitive. The default is `Msgpack`.
 
-# SEE ALSO
-
