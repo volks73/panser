@@ -1,26 +1,40 @@
-# Panser: A command line application for (de)serializing data #
+# Panser: A command line application for (de)serializing data
 
 [About](#what-is-panser) | [Installation](#installation) | [Build](#build) | [Examples](#examples)  
 
-## What is Panser? ##
+## What is Panser?
 
 The Panser project is a Command-Line Interface (CLI) application for (de)serializing data formats in a pipe-friendly manner. The project is primarily written in the [Rust](http://www.rust-lang.org) programming language. It can be installed on any [platform supported](https://forge.rust-lang.org/platform-support.html) by the Rust programming language, including Linux, macOS, and Windows. The idea is to have a single application for reading data in one format on stdin and writing the same data but in a different format to stdout. It is possible to read data from a file and write to another file, but the application is focused on creating streams of data that can be piped into a socket, such as a TCP stream. The primary motivator for the application is to read [JSON](http://www.json.org/) data and output to the [MessagePack](http://msgpack.org/index.html) format which could be used with a TCP stream to develop low-level Application Programming Interfaces (APIs) for network-enabled applications. The reverse is also a desired goal: reading in MessagePack data (binary, machine-readable) and transcoding it to JSON (text, human-readable).
 
 After accomplishing the primary goal of transcoding between JSON and MessagePack (Msgpack) formats, additional formats were gradually added using the [serde](https://github.com/serde-rs/serde) project and related libraries. Almost all of the formats listed in the [Data Formats](https://serde.rs/#data-formats) section of the [Overview](https://serde.rs/) for the serde project are implemented. The intention is to add more formats as more crates are developed using the serde framework.
 
-## Installation ##
+## Installation
 
 Panser can be installed on any platform supported by the Rust programming language, including Linux, macOS, and Windows. It is possible to run Panser on Windows using the native command prompt (cmd.exe) or a terminal emulator, like [Mintty](https://mintty.github.io/) via [Cygwin](https://www.cygwin.com/).
 
-### Dependencies ###
+### Windows
+
+An installer (msi) with a pre-compiled binary is available with each [release](https://github.com/volks73/panser/releases). The installer will also add the installation location to the PATH system environment variable so panser can be executed from anywhere. Run the installer and follow the on-screen dialog to complete the installation.
+
+It is also possible to install the application from source using Cargo. See the instructions for [installation via Cargo](#source) and use a command prompt (cmd.exe) or terminal emulator to execute the commands.
+
+### macOS
+
+Follow the instructions for [installation from source](#source).
+
+### Linux
+
+Follow the instructions for [installation from source](#source).
+
+### Source
+
+Download and install the following dependencies before installing the binary using Cargo.
 
 - [Cargo](https://crates.io/), v0.17 or higher
-- [Pandoc](http://pandoc.org), v1.18 or higher, optional
+- [Pandoc](http://pandoc.org), v1.19 or higher, optional
 - [Rust](https://www.rust-lang.org/), v1.16 or higher
 
-Download and install the latest version of [Rust](https://www.rust-lang.org) before proceeding. [Cargo](https://crates.io) will be installed automatically with Rust. [Pandoc](http://pandoc.org) is only needed for installing and/or building the manual, and it is optional.
-
-### Repository ###
+#### Application
 
 Run the following commands from a terminal:
 
@@ -28,11 +42,7 @@ Run the following commands from a terminal:
     $ cd panser
     $ cargo install
 
-It might be desirable to change the install location by using the `--root` option with the `cargo install` command. See the `cargo install --help` for more information about installing a Rust binary crate using Cargo.
-
-### Source Distribution ###
-
-Obtain the appropriate source distribution as an archive file and run the following commands from a terminal:
+Or obtain the source as an archive and run the following commands from a terminal:
 
     $ tar xf panser-#.#.#.tar.gz
     $ cd panser-#.#.#
@@ -40,18 +50,31 @@ Obtain the appropriate source distribution as an archive file and run the follow
 
 where `#.#.#` is replaced with the version number of the source distribution, respectively. It might be desirable to change the install location by using the `--root` option with the `cargo install` command. See the `cargo install --help` for more information about installing a Rust binary crate using Cargo.
 
-### Documentation (Optional) ###
 
-The manual must be installed manually. The [Pandoc](http://pandoc.org) application must be installed to convert the manual in [markdown](http://pandoc.org/MANUAL.html#pandocs-markdown) format to the appropriate [groff](https://www.gnu.org/software/groff/) format. First install the application, then from the root directory of the project, run the following commands from a terminal:
+It might be desirable to change the install location by using the `--root` option with the `cargo install` command. See the `cargo install --help` for more information about installing a Rust binary crate using Cargo.
+
+Note, if the panser binary was installed using cargo, then it can be uninstalled using `cargo uninstall panser`.
+
+#### Documentation (Optional)
+
+If the [Pandoc](http://pandoc.org) application was installed prior to installing from source via Cargo, i.e. `cargo install`, then a manpage in the [grofff](https://www.gnu.org/software/groff/) format is automatically created from the [markdown](http://pandoc.org/MANUAL.html#pandocs-markdown) "source" file in the `man` directory using pandoc as part of the build script (`build.rs`). Otherwise, the manpage can be built with the following command:
 
     $ pandoc -s -t man -o man/panser.1 man/panser.1.md 
-    $ cp man/panser.1 /usr/share/man/man1
 
-## Build ##
+Regardless if the manpage (`panser.1`) was manually or automatically generated, it must be must be manually installed with the following command:
 
-Download and install the same dependencies listed for installing the application, this includes the latest versions of [Rust](https://www.rust-lang.org), [Cargo](https://crates.io), and optionally [Pandoc](http://pandoc.org).
+    $ mkdir -p ~/.cargo/share/man/man1
+    $ cp man/panser.1 ~/.cargo/share/man/man1
 
-### Application ###
+If uninstalling panser using Cargo, i.e. `cargo uninstall panser`, then the manpage must also be manually removed as follows:
+
+    $ rm ~/.cargo/share/man/man1/panser.1
+
+## Build
+
+Download and install the same dependencies listed for [installing the application from source](#source), this includes the latest versions of [Rust](https://www.rust-lang.org), [Cargo](https://crates.io), and optionally [Pandoc](http://pandoc.org).
+
+### Application
 
 Run the following commands from a terminal:
 
@@ -67,13 +90,19 @@ Or obtain the source as an archive and run the following commands from a termina
 
 where `#.#.#` is replaced with the version number of the source distribution, respectively. The `--release` flag can be added to the cargo command to build a release application instead of a debug application. 
 
-### Documentation ###
+### Documentation
 
 Obtain the appropriate source and run the following commands from the root directory of the project in a terminal:
 
+    $ cargo build --release
+
+Or,
+
     $ pandoc -s -t man -o man/panser.1 man/panser.1.md
 
-## Examples ##
+When the `release` profile is used to build the binary, the manpage is automatically generated if pandoc is installed.
+
+## Examples
 
 Convert [JSON](http://www.json.org) from stdin to [MessagePack](http://msgpack.org) (Msgpack) and write to stdout. Panser converts JSON to Msgpack by default. See the `-h,--help` text for more information and options. Specifically, see the `-f,--from` and `-t,--to` help text for lists of supported formats. The `-r,--radix` option is used to display the binary Msgpack format in a human readable format.
 
@@ -191,11 +220,11 @@ $ ehco '{"bool":true}' | panser | wsta 127.0.0.1:1234 | panser -f msgpack -t jso
 {"bool":true}
 ```
 
-## License ##
+## License
 
 See the LICENSE file for more information about licensing and copyright.
 
-## Contributors ##
+## Contributors
 
 See the AUTHORS file for information about contributors. Contributors are listed alphabetically by family name.
 
