@@ -9,6 +9,7 @@ keywords = ["cli", "serialization", "transcode", "deserialization"]
 categories = ["encoding", "command-line-utilities", "value-formatting"]
 homepage = "https://github.com/volks73/panser"
 repository = "https://github.com/volks73/panser"
+build = "build.rs"
 
 [[bin]]
 name = "panser"

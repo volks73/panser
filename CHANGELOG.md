@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file, which is wr
 
 ### Added
 
+- Build script to generate manpage on release build.
+
+## [0.5.0] - 2017-11-16
+
+### Added
+
 - Colorized error statements. See [Issue #6](https://github.com/volks73/panser/issues/6).
 
 ### Changed
