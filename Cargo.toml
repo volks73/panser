@@ -14,11 +14,7 @@ build = "build.rs"
 [[bin]]
 name = "panser"
 path = "src/main.rs"
-doctest = false
-
-[lib]
 doc = false
-doctest = false
 
 [dependencies]
 ansi_term = "0.10"
