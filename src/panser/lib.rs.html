@@ -650,6 +650,48 @@
 <span id="605">605</span>
 <span id="606">606</span>
 <span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright (C) 2017 Christopher R. Field.</span>
 <span class="comment">//</span>
@@ -672,7 +714,9 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Panser is primarily a Command-Line Interface (CLI) application for (de)serializing data formats</span>
 <span class="doccomment">//! in a UNIX, pipe-friendly manner, but much of the functionality is provided in the</span>
-<span class="doccomment">//! library/crate.</span>
+<span class="doccomment">//! library/crate. Since the binary is essentially a wrapper around the publicly exposed</span>
+<span class="doccomment">//! functionality of the crate, documentation on using the binary is provided here in the API</span>
+<span class="doccomment">//! documentation.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Binary Usage</span>
 <span class="doccomment">//!</span>
@@ -800,14 +844,14 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ### Exit Codes</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! | Code | Reason                                             |</span>
-<span class="doccomment">//! |------|----------------------------------------------------|</span>
-<span class="doccomment">//! | 0    | Success, no error                                  |</span>
-<span class="doccomment">//! | 1    | Failure, error transcoding                         |</span>
-<span class="doccomment">//! | 2    | Failure, generic error                             |</span>
-<span class="doccomment">//! | 3    | Failure, Input/Output (IO)                         |</span>
-<span class="doccomment">//! | 4    | Failure, error parsing integer                     |</span>
-<span class="doccomment">//! | 5    | Failure, error with UTF-8 encoding                 |</span>
+<span class="doccomment">//! | Code | Reason                             |</span>
+<span class="doccomment">//! |------|------------------------------------|</span>
+<span class="doccomment">//! | 0    | Success, no error                  |</span>
+<span class="doccomment">//! | 1    | Failure, error transcoding         |</span>
+<span class="doccomment">//! | 2    | Failure, generic error             |</span>
+<span class="doccomment">//! | 3    | Failure, Input/Output (IO)         |</span>
+<span class="doccomment">//! | 4    | Failure, error parsing integer     |</span>
+<span class="doccomment">//! | 5    | Failure, error with UTF-8 encoding |</span>
 
 
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">bincode</span>;
@@ -838,14 +882,21 @@
 
 <span class="kw">mod</span> <span class="ident">panser</span>;
 
+<span class="doccomment">/// A specialized `Result` type for panser operations.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
 
+<span class="doccomment">/// The available framing options.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Framing</span> {
+    <span class="doccomment">/// Prefix the total message size as an unsigned 32-bit integer.</span>
     <span class="ident">Sized</span>,
+    <span class="doccomment">/// Separate, or delimit, each message with a byte, or char, as a flag.</span>
     <span class="ident">Delimited</span>(<span class="ident">u8</span>),
 }
 
+<span class="doccomment">/// The different output (serialization) formats.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note, not all formats can be deserialized and serialized.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ToFormat</span> {
     <span class="ident">Bincode</span>,
@@ -910,6 +961,9 @@
     }
 }
 
+<span class="doccomment">/// The different input (deserialization) formats.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note, not all formats can be deserialized and serialized.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FromFormat</span> {
     <span class="ident">Bincode</span>,
@@ -978,11 +1032,16 @@
     }
 }
 
+<span class="doccomment">/// The format, or radix, for displaying serialized binary data.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Radix</span> {
+    <span class="doccomment">/// Display data as a series of zeros (0) and ones (1).</span>
     <span class="ident">Binary</span>,
+    <span class="doccomment">/// Display data as a series of decimal (integer) values.</span>
     <span class="ident">Decimal</span>,
+    <span class="doccomment">/// Display data as a series of hexadecimal values.</span>
     <span class="ident">Hexadecimal</span>,
+    <span class="doccomment">/// Display data as a series of octal values.</span>
     <span class="ident">Octal</span>,
 }
 
@@ -1034,29 +1093,54 @@
     }
 }
 
+<span class="doccomment">/// THe error type for panser-releated operations and associated traits.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Errors mostly originate from the dependencies, but custom instances of Error can be crated with</span>
+<span class="doccomment">/// the `Generic` variant and a message. </span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span> {
+    <span class="doccomment">/// Decoding/encoding of the Bincode format failed.</span>
     <span class="ident">Bincode</span>(<span class="ident">bincode</span>::<span class="ident">Error</span>),
+    <span class="doccomment">/// Decoding/encoding of the CBOR format failed.</span>
     <span class="ident">Cbor</span>(<span class="ident">serde_cbor</span>::<span class="ident">Error</span>),
     <span class="comment">//Envy(envy::Error),</span>
+    <span class="doccomment">/// End-of-File (EOF) reached.</span>
     <span class="ident">Eof</span>,
+    <span class="doccomment">/// A generic or custom error occurred. The message should contain the detailed information.</span>
     <span class="ident">Generic</span>(<span class="ident">String</span>),
     <span class="comment">//Hjson(serde_hjson::Error),</span>
+    <span class="doccomment">/// An I/O operation failed.</span>
     <span class="ident">Io</span>(<span class="ident">io</span>::<span class="ident">Error</span>),
+    <span class="doccomment">/// Decoding/encoding of the JSON format failed.</span>
     <span class="ident">Json</span>(<span class="ident">serde_json</span>::<span class="ident">Error</span>),
+    <span class="doccomment">/// Decoding of the MessagePack format failed.</span>
     <span class="ident">MsgpackDecode</span>(<span class="ident">rmp_serde</span>::<span class="ident">decode</span>::<span class="ident">Error</span>),
+    <span class="doccomment">/// Encoding of the MessagePack format failed.</span>
     <span class="ident">MsgpackEncode</span>(<span class="ident">rmp_serde</span>::<span class="ident">encode</span>::<span class="ident">Error</span>),
+    <span class="doccomment">/// Converting a string to an integer failed.</span>
     <span class="ident">ParseInt</span>(<span class="ident">num</span>::<span class="ident">ParseIntError</span>),
+    <span class="doccomment">/// Decoding/encoding of the Pickle format failed.</span>
     <span class="ident">Pickle</span>(<span class="ident">serde_pickle</span>::<span class="ident">Error</span>),
+    <span class="doccomment">/// Decoding of the TOML format failed.</span>
     <span class="ident">TomlDecode</span>(<span class="ident">toml</span>::<span class="ident">de</span>::<span class="ident">Error</span>),
+    <span class="doccomment">/// Encoding of the TOML format failed.</span>
     <span class="ident">TomlEncode</span>(<span class="ident">toml</span>::<span class="ident">ser</span>::<span class="ident">Error</span>),
+    <span class="doccomment">/// A UTF8 operation failed.</span>
     <span class="ident">Utf8</span>(<span class="ident">str</span>::<span class="ident">Utf8Error</span>),
+    <span class="doccomment">/// Decoding from a URL failed.</span>
     <span class="ident">UrlDecode</span>(<span class="ident">serde_urlencoded</span>::<span class="ident">de</span>::<span class="ident">Error</span>),
+    <span class="doccomment">/// Encoding from a URL failed.</span>
     <span class="ident">UrlEncode</span>(<span class="ident">serde_urlencoded</span>::<span class="ident">ser</span>::<span class="ident">Error</span>),
+    <span class="doccomment">/// Decoding/encoding of the YAML format failed.</span>
     <span class="ident">Yaml</span>(<span class="ident">serde_yaml</span>::<span class="ident">Error</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">Error</span> {
+    <span class="doccomment">/// Gets an error code related to the error.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is useful as a return, or exit, code for a command line application, where a non-zero</span>
+    <span class="doccomment">/// integer indicates a failure in the application. It can also be used for quickly and easily</span>
+    <span class="doccomment">/// teseting equality between two errors.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">code</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">i32</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">Error</span>::<span class="ident">Bincode</span>(..) <span class="op">=&gt;</span> <span class="number">1</span>,

@@ -48,12 +48,14 @@
                    <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
                        [<span class='inner'>&#x2212;</span>]
                    </a>
-               </span><a class='srclink' href='../src/panser/lib.rs.html#18-606' title='goto source code'>[src]</a></span></h1>
+               </span><a class='srclink' href='../src/panser/lib.rs.html#18-648' title='goto source code'>[src]</a></span></h1>
 <div class='docblock'>
 <h1 id='panser' class='section-header'><a href='#panser'>Panser</a></h1>
 <p>Panser is primarily a Command-Line Interface (CLI) application for (de)serializing data formats
 in a UNIX, pipe-friendly manner, but much of the functionality is provided in the
-library/crate.</p>
+library/crate. Since the binary is essentially a wrapper around the publicly exposed
+functionality of the crate, documentation on using the binary is provided here in the API
+documentation.</p>
 
 <h2 id='binary-usage' class='section-header'><a href='#binary-usage'>Binary Usage</a></h2>
 <h3 id='examples' class='section-header'><a href='#examples'>Examples</a></h3>
@@ -215,35 +217,35 @@ creating the Panser application.</p>
                            <td><a class="enum" href="enum.Error.html"
                                   title='enum panser::Error'>Error</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>THe error type for panser-releated operations and associated traits.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class="enum" href="enum.Framing.html"
                                   title='enum panser::Framing'>Framing</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>The available framing options.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class="enum" href="enum.FromFormat.html"
                                   title='enum panser::FromFormat'>FromFormat</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>The different input (deserialization) formats.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class="enum" href="enum.Radix.html"
                                   title='enum panser::Radix'>Radix</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>The format, or radix, for displaying serialized binary data.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class="enum" href="enum.ToFormat.html"
                                   title='enum panser::ToFormat'>ToFormat</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>The different output (serialization) formats.</p>
                            </td>
                        </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
 <table>
@@ -273,7 +275,7 @@ creating the Panser application.</p>
                            <td><a class="type" href="type.Result.html"
                                   title='type panser::Result'>Result</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>A specialized <code>Result</code> type for panser operations.</p>
                            </td>
                        </tr></table></section>
     <section id='search' class="content hidden"></section>
