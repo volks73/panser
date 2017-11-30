@@ -19,7 +19,9 @@
 //!
 //! Panser is primarily a Command-Line Interface (CLI) application for (de)serializing data formats
 //! in a UNIX, pipe-friendly manner, but much of the functionality is provided in the
-//! library/crate.
+//! library/crate. Since the binary is essentially a wrapper around the publicly exposed
+//! functionality of the crate, documentation on using the binary is provided here in the API
+//! documentation.
 //!
 //! ## Binary Usage
 //!
@@ -147,14 +149,14 @@
 //!
 //! ### Exit Codes
 //!
-//! | Code | Reason                                             |
-//! |------|----------------------------------------------------|
-//! | 0    | Success, no error                                  |
-//! | 1    | Failure, error transcoding                         |
-//! | 2    | Failure, generic error                             |
-//! | 3    | Failure, Input/Output (IO)                         |
-//! | 4    | Failure, error parsing integer                     |
-//! | 5    | Failure, error with UTF-8 encoding                 |
+//! | Code | Reason                             |
+//! |------|------------------------------------|
+//! | 0    | Success, no error                  |
+//! | 1    | Failure, error transcoding         |
+//! | 2    | Failure, generic error             |
+//! | 3    | Failure, Input/Output (IO)         |
+//! | 4    | Failure, error parsing integer     |
+//! | 5    | Failure, error with UTF-8 encoding |
 
 
 extern crate bincode;
@@ -185,14 +187,21 @@ pub use self::panser::transcode;
 
 mod panser;
 
+/// A specialized `Result` type for panser operations.
 pub type Result<T> = result::Result<T, Error>;
 
+/// The available framing options.
 #[derive(Clone, Copy, Debug)]
 pub enum Framing {
+    /// Prefix the total message size as an unsigned 32-bit integer.
     Sized,
+    /// Separate, or delimit, each message with a byte, or char, as a flag.
     Delimited(u8),
 }
 
+/// The different output (serialization) formats.
+///
+/// Note, not all formats can be deserialized and serialized.
 #[derive(Clone, Copy, Debug)]
 pub enum ToFormat {
     Bincode,
@@ -257,6 +266,9 @@ impl fmt::Display for ToFormat {
     }
 }
 
+/// The different input (deserialization) formats.
+///
+/// Note, not all formats can be deserialized and serialized.
 #[derive(Clone, Copy, Debug)]
 pub enum FromFormat {
     Bincode,
@@ -325,11 +337,16 @@ impl FromStr for FromFormat {
     }
 }
 
+/// The format, or radix, for displaying serialized binary data.
 #[derive(Clone, Copy, Debug)]
 pub enum Radix {
+    /// Display data as a series of zeros (0) and ones (1).
     Binary,
+    /// Display data as a series of decimal (integer) values.
     Decimal,
+    /// Display data as a series of hexadecimal values.
     Hexadecimal,
+    /// Display data as a series of octal values.
     Octal,
 }
 
@@ -381,29 +398,54 @@ impl fmt::Display for Radix {
     }
 }
 
+/// THe error type for panser-releated operations and associated traits.
+///
+/// Errors mostly originate from the dependencies, but custom instances of Error can be crated with
+/// the `Generic` variant and a message. 
 #[derive(Debug)]
 pub enum Error {
+    /// Decoding/encoding of the Bincode format failed.
     Bincode(bincode::Error),
+    /// Decoding/encoding of the CBOR format failed.
     Cbor(serde_cbor::Error),
     //Envy(envy::Error),
+    /// End-of-File (EOF) reached.
     Eof,
+    /// A generic or custom error occurred. The message should contain the detailed information.
     Generic(String),
     //Hjson(serde_hjson::Error),
+    /// An I/O operation failed.
     Io(io::Error),
+    /// Decoding/encoding of the JSON format failed.
     Json(serde_json::Error),
+    /// Decoding of the MessagePack format failed.
     MsgpackDecode(rmp_serde::decode::Error),
+    /// Encoding of the MessagePack format failed.
     MsgpackEncode(rmp_serde::encode::Error),
+    /// Converting a string to an integer failed.
     ParseInt(num::ParseIntError),
+    /// Decoding/encoding of the Pickle format failed.
     Pickle(serde_pickle::Error),
+    /// Decoding of the TOML format failed.
     TomlDecode(toml::de::Error),
+    /// Encoding of the TOML format failed.
     TomlEncode(toml::ser::Error),
+    /// A UTF8 operation failed.
     Utf8(str::Utf8Error),
+    /// Decoding from a URL failed.
     UrlDecode(serde_urlencoded::de::Error),
+    /// Encoding from a URL failed.
     UrlEncode(serde_urlencoded::ser::Error),
+    /// Decoding/encoding of the YAML format failed.
     Yaml(serde_yaml::Error),
 }
 
 impl Error {
+    /// Gets an error code related to the error.
+    ///
+    /// This is useful as a return, or exit, code for a command line application, where a non-zero
+    /// integer indicates a failure in the application. It can also be used for quickly and easily
+    /// teseting equality between two errors.
     pub fn code(&self) -> i32 {
         match *self {
             Error::Bincode(..) => 1,
