@@ -6,7 +6,18 @@ All notable changes to this project will be documented in this file, which is wr
 
 ### Added
 
+- Documentation to public enums and functions.
+- GitHub Pages for API documentation.
+- HTML format for manpage.
 - Build script to generate manpage on release build.
+
+### Changed
+
+- Documentation structure to use library/crate instead of binary.
+
+### Fixed
+
+- Examples in documentation that resulted in failed tests.
 
 ## [0.5.0] - 2017-11-16
 
