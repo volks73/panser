@@ -398,7 +398,7 @@ impl fmt::Display for Radix {
     }
 }
 
-/// THe error type for panser-releated operations and associated traits.
+/// The error type for panser-releated operations and associated traits.
 ///
 /// Errors mostly originate from the dependencies, but custom instances of Error can be crated with
 /// the `Generic` variant and a message. 
