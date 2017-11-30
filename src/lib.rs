@@ -18,7 +18,144 @@
 //! # Panser
 //!
 //! Panser is primarily a Command-Line Interface (CLI) application for (de)serializing data formats
-//! in a UNIX, pipe-friendly manner, but much of the functionality is provided in the library.
+//! in a UNIX, pipe-friendly manner, but much of the functionality is provided in the
+//! library/crate.
+//!
+//! ## Binary Usage
+//!
+//! ### Examples
+//!
+//! Convert [JSON](http://www.json.org) from stdin to [MessagePack](http://msgpack.org) (Msgpack)
+//! and write to stdout. Panser converts JSON to Msgpack by default. See the `-h,--help` text for
+//! more information and options. Specifically, see the `-f,--from` and `-t,--to` help text for
+//! lists of supported formats. The `-r,--radix` option is used to display the serialized output as
+//! a space-separated list of bytes, where each byte is a string with formatted with the specified
+//! radix. If the `-r,--radix` was _not_ used, the serialized output would be written as binary
+//! data to stdout and not be very human readable but easily piped to other applications.
+//!
+//! ```bash
+//! $ echo '{"bool":true}' | panser --radix hex
+//! 81 A4 62 6F 6F 6C C3
+//! ```
+//!
+//! Pipe the output to another application. Here, the
+//! [xxd](http://linuxcommand.org/man_pages/xxd1.html) application receives the serialized
+//! MessagePack binary output from Panser and displays it using the C-style notation for bytes.
+//! This demonstrates piping the output of Panser to another application, but the `-r,--radix`
+//! option with the `hex` value serves a similar function to using the `xxd` application.
+//!
+//! ```bash
+//! $ echo '{"bool":true"}' | panser | xxd -i
+//!   0x81, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3
+//! ```
+//!
+//! Similarly, convert JSON from a file to Msgpack and write to stdout. If no file is specified,
+//! then data is read continuously from stdin until End-of-File (EOF) is reached (Ctrl+D). The
+//! short names and possible value for the `-r,--radix` option is used for more succinct usage.
+//!
+//! ```bash
+//! $ panser -r h file.json
+//! 81 A4 62 6F 6F 6C C3
+//! ```
+//!
+//! Redirection can also be used.
+//!
+//! ```bash
+//! $ panser -r h < file.json
+//! 81 A4 62 6F 6F 6C C3
+//! ```
+//!
+//! Write data to file instead of stdout. The output file will contain the binary MessagePack data.
+//!
+//! ```bash
+//! $ echo '{"bool":true,"number":1.234}' | panser -o file.msgpack
+//! $ cat file.msgpack | xxd -i
+//!   0x82, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3, 0xa6, 0x6e, 0x75, 0x6d, 0x62,
+//!   0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8, 0xb4, 0x39, 0x58
+//! ```
+//!
+//! If the `-r,--radix` option is used, then the contents of the output file would _not_ be
+//! Msgpack data, but the space-separated list of bytes as numeric strings. 
+//!
+//! ```bash
+//! $ echo '{"bool":true,"number":1.234}' | panser -r h -o file.msgpack
+//! $ cat file.msgpack
+//! 82 A4 62 6F 6F 6C C3 A6 6E 75 6D 62 65 72 CB 3F F3 BE 76 C8 B4 39 58
+//! ```
+//!
+//! Add size-based framing to the output. Size-based framing is prepending the total serialized
+//! data length as an unsigned 32-bit integer in Big Endian (Network Order), and it is often used
+//! to aid in buffering and creating stream-based applications. Note the first four bytes.
+//!
+//! ```bash
+//! $ echo '{"bool":true,"number":1.234}' | panser -r h --sized-output 
+//! 00 00 00 17 82 A4 62 6F 6F 6C C3 A6 6E 75 6D 62 65 72 CB 3F F3 BE 76 C8 B4 39 58
+//! ```
+//!
+//! The same can be done for input to remove the size-based framing. Note the use of the `-f` option to
+//! indicate the input format is MessagePack and _not_ JSON. The first four bytes are removed.
+//! Size-based framing can be added or removed from any supported format, not just MessagePack.
+//!
+//! ```bash
+//! $ echo '{"bool":true,"number":1.234}' | panser --sized-output | panser -r h -f msgpack --sized-input
+//! 82 A4 62 6F 6F 6C C3 A6 6E 75 6D 62 65 72 CB 3F F3 BE 76 C8 B4 39 58
+//! ```
+//!
+//! Another form of framing data in a stream involves delimiting each frame with delimiter byte.
+//! Panser can also handle delimiter-based framing of data. This uses the ASCII newline character
+//! (`\n`, 10 dec, 0A hex, or 012 octal) as the delimiter.
+//!
+//! ```bash
+//! $ echo '{"bool":true,"number":1.234}' | panser --delimited-output 10d | panser -r h -f msgpack --delimited-input 10d
+//! 82 A4 62 6F 6F 6C C3 A6 6E 75 6D 62 65 72 CB 3F F3 BE 76 C8 B4 39 58$
+//! ```
+//!
+//! Using the delimited input and output is also a neat way to create an interactive console for Panser.
+//!
+//! ```bash
+//! $ panser -d 0Ah -t Hjson
+//! {"bool":true"}
+//! {
+//!     "bool": true
+//! }
+//! {"bool":true,"number":1.234}
+//! {
+//!     "bool": true,
+//!     "number": 1.234
+//! }
+//! ```
+//!
+//! If the output is a binary format, like Msgpack, the `-r,--radix` becomes very useful for
+//! creating an interactive console.
+//!
+//! ```bash
+//! $ panser -r h -d 0Ah
+//! {"bool":true"}
+//! 81 A4 62 6F 6F 6C C3
+//! {"bool":true,"number":1.234}
+//! 82 A4 62 6F 6F 6C C3 A6 6E 75 6D 62 65 72 CB 3F F3 BE 76 C8 B4 39 58
+//! ```
+//!
+//! Data can be sent to a network device using the [nc](https://linux.die.net/man/1/nc) command. The JSON
+//! will be transcoded to size-based framed MessagePack and streamed to the server at the IP
+//! address and TCP port used with the `nc` command. This was actually the primary motivation for
+//! creating the Panser application.
+//!
+//! ```bash
+//! $ echo '{"bool":true,"numeber":1.234}' | panser --sized-output | nc 127.0.0.1 1234
+//! ```
+//!
+//! ### Exit Codes
+//!
+//! | Code | Reason                                             |
+//! |------|----------------------------------------------------|
+//! | 0    | Success, no error                                  |
+//! | 1    | Failure, error transcoding                         |
+//! | 2    | Failure, generic error                             |
+//! | 3    | Failure, Input/Output (IO)                         |
+//! | 4    | Failure, error parsing integer                     |
+//! | 5    | Failure, error with UTF-8 encoding                 |
+
 
 extern crate bincode;
 extern crate byteorder;

@@ -341,12 +341,22 @@ pub fn serialize(value: serde_json::Value, to: ToFormat) -> Result<Vec<u8>> {
 /// transcoding. However, if used in a producer-consumer architecture with framing,
 /// the memory usage should be minimized.
 ///
-/// # Examples
+/// # Example
 ///
 /// ```rust
-/// let input = "{\"bool\":true}";
-/// let output = panser::transcode(input.as_bytes(), FromFormat::JSON, ToFormat::Msgpack)?;
-/// assert_eq!(output, vec![0x81, 0xA4, 0x62, 0x6F, 0x6F, 0x6C, 0xC3]);
+/// extern crate panser;
+///
+/// use panser::{FromFormat, ToFormat};
+///
+/// fn main() {
+///     let input = "{\"bool\":true}";
+///     let output = panser::transcode(
+///         input.as_bytes(), 
+///         FromFormat::Json,
+///         ToFormat::Msgpack
+///     ).unwrap();
+///     assert_eq!(output, vec![0x81, 0xA4, 0x62, 0x6F, 0x6F, 0x6C, 0xC3]);
+/// }
 /// ```
 pub fn transcode(input: &[u8], from: FromFormat, to: ToFormat) -> Result<Vec<u8>> {
     serialize(deserialize(input, from)?, to)
