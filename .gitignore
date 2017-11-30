@@ -2,3 +2,4 @@ target
 **/*.rs.bk
 panser.1
 man/panser.1
+man/*.html
