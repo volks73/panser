@@ -5,20 +5,25 @@ use std::process::Command;
 const MAN_NAME: &str = "man";
 const MAN_EXT: &str = "1";
 const MARKDOWN_EXT: &str = "md";
+const PANDOC: &str = "pandoc";
+const HTML_EXT: &str = "html";
 
 fn main() {
     let profile = env::var("PROFILE").unwrap();
     if profile == "release" {
         let root_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
         let pkg_name = env::var("CARGO_PKG_NAME").unwrap();
-        let mut out_dir = PathBuf::from(&root_dir);
-        out_dir.push(MAN_NAME);
-        out_dir.push(&pkg_name);
-        out_dir.set_extension(MAN_EXT);
+        let mut output_man_file = PathBuf::from(&root_dir);
+        output_man_file.push(MAN_NAME);
+        output_man_file.push(&pkg_name);
+        output_man_file.set_extension(MAN_EXT);
+        let mut output_html_file = PathBuf::from(&root_dir);
+        output_html_file.push(MAN_NAME);
+        output_html_file.push("manpage");
+        output_html_file.set_extension(HTML_EXT);
         let mut input_doc_file = PathBuf::from(&root_dir);
         input_doc_file.push(MAN_NAME);
         input_doc_file.push(format!("{}.{}.{}", &pkg_name, MAN_EXT, MARKDOWN_EXT));
-
         // If there is an error building the command, such as the `pandoc` executable is not found,
         // i.e. not installed, then just ignore the error. In other words, if building fails
         // because pandoc is not installed then do not worry about building the
@@ -30,17 +35,30 @@ fn main() {
         // development. This is a workaround until that is implemented. Note, this does not
         // actually install the manpage it just builds it when the `cargo build --release` command
         // is used.
-        if let Some(status) = Command::new("pandoc")
+        if let Some(status) = Command::new(PANDOC)
             .arg("-s")
             .arg("-t")
             .arg(MAN_NAME)
             .arg("-o")
-            .arg(out_dir)
-            .arg(input_doc_file)
+            .arg(&output_man_file)
+            .arg(&input_doc_file)
             .status()
             .ok() {
             if !status.success() {
-                panic!("Failed to build the manpage for the release");
+                panic!("Failed to build the groff manpage for release");
+            }
+        }
+        if let Some(status) = Command::new(PANDOC)
+            .arg("-s")
+            .arg("-t")
+            .arg("html")
+            .arg("-o")
+            .arg(&output_html_file)
+            .arg(&input_doc_file)
+            .status()
+            .ok() {
+            if !status.success() {
+                panic!("Failed to build the html manpage for release");
             }
         }
     }

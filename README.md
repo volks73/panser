@@ -1,6 +1,6 @@
 # Panser: A command line application for (de)serializing data
 
-[About](#what-is-panser) | [Installation](#installation) | [Build](#build) | [Examples](#examples)  
+[About](#what-is-panser) | [Installation](#installation) | [Manual](https://volks73.github.io/panser/manpage.html) | [API](https://volks73.github.io/panser) | [Build](#build) | [Examples](#examples)  
 
 ## What is Panser?
 
@@ -92,13 +92,26 @@ where `#.#.#` is replaced with the version number of the source distribution, re
 
 ### Documentation
 
+Documentation is available in two forms: (i) [API](#api) and (ii) [Manpage](#manpage). The API documentation is for the library/crate while the Manpage documentation is helpful for the executable/binary. 
+
+#### [API](https://volks73.github.io/panser)
+
 Obtain the appropriate source and run the following commands from the root directory of the project in a terminal:
+
+    $ cargo doc --no-deps
+
+The output will be available in the `target/doc` folder.
+
+#### [Manpage](https://volks73.github.io/panser/manpage.html)
+
+Obtain the appropriate source and run the following commands from the root directory of the project in a terminal to build the manpage in the [groff](https://www.gnu.org/software/groff/) and html formats:
 
     $ cargo build --release
 
 Or,
 
     $ pandoc -s -t man -o man/panser.1 man/panser.1.md
+    $ pandoc -s -t html -o manpage.html man/panser.1.md
 
 When the `release` profile is used to build the binary, the manpage is automatically generated if pandoc is installed.
 
