@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Error` enum in crate `panser`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Error">
+
+    <title>panser::Error - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc enum">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Enum Error</p><div class="block items"><ul><li><a href="#variants">Variants</a></li><li><a href="#methods">Methods</a></li><li><a href="#implementations">Trait Implementations</a></li></ul></div><p class='location'><a href='index.html'>panser</a></p><script>window.sidebarCurrent = {name: 'Error', ty: 'enum', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Enum <a href='index.html'>panser</a>::<wbr><a class="enum" href=''>Error</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/panser/lib.rs.html#385-404' title='goto source code'>[src]</a></span></h1>
+<pre class='rust enum'>pub enum Error {
+    Bincode(Error),
+    Cbor(Error),
+    Eof,
+    Generic(<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>),
+    Io(<a class="struct" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html" title="struct std::io::error::Error">Error</a>),
+    Json(<a class="struct" href="https://docs.rs/serde_json/1.0.6/serde_json/error/struct.Error.html" title="struct serde_json::error::Error">Error</a>),
+    MsgpackDecode(Error),
+    MsgpackEncode(Error),
+    ParseInt(<a class="struct" href="https://doc.rust-lang.org/nightly/core/num/struct.ParseIntError.html" title="struct core::num::ParseIntError">ParseIntError</a>),
+    Pickle(Error),
+    TomlDecode(<a class="struct" href="https://docs.rs/toml/0.4/toml/de/struct.Error.html" title="struct toml::de::Error">Error</a>),
+    TomlEncode(<a class="enum" href="https://docs.rs/toml/0.4/toml/ser/enum.Error.html" title="enum toml::ser::Error">Error</a>),
+    Utf8(<a class="struct" href="https://doc.rust-lang.org/nightly/core/str/struct.Utf8Error.html" title="struct core::str::Utf8Error">Utf8Error</a>),
+    UrlDecode(<a class="struct" href="https://docs.rs/serde/1.0.20/serde/de/value/struct.Error.html" title="struct serde::de::value::Error">Error</a>),
+    UrlEncode(Error),
+    Yaml(<a class="struct" href="https://docs.rs/serde_yaml/0.7.1/serde_yaml/error/struct.Error.html" title="struct serde_yaml::error::Error">Error</a>),
+}</pre><h2 id='variants' class='variants small-section-header'>
+                   Variants<a href='#variants' class='anchor'></a></h2>
+<span id="variant.Bincode" class="variant small-section-header"><a href="#variant.Bincode" class="anchor field"></a><span id='Bincode.v' class='invisible'><code>Bincode(Error)</code></span></span><span id="variant.Cbor" class="variant small-section-header"><a href="#variant.Cbor" class="anchor field"></a><span id='Cbor.v' class='invisible'><code>Cbor(Error)</code></span></span><span id="variant.Eof" class="variant small-section-header"><a href="#variant.Eof" class="anchor field"></a><span id='Eof.v' class='invisible'><code>Eof</code></span></span><span id="variant.Generic" class="variant small-section-header"><a href="#variant.Generic" class="anchor field"></a><span id='Generic.v' class='invisible'><code>Generic(<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>)</code></span></span><span id="variant.Io" class="variant small-section-header"><a href="#variant.Io" class="anchor field"></a><span id='Io.v' class='invisible'><code>Io(<a class="struct" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html" title="struct std::io::error::Error">Error</a>)</code></span></span><span id="variant.Json" class="variant small-section-header"><a href="#variant.Json" class="anchor field"></a><span id='Json.v' class='invisible'><code>Json(<a class="struct" href="https://docs.rs/serde_json/1.0.6/serde_json/error/struct.Error.html" title="struct serde_json::error::Error">Error</a>)</code></span></span><span id="variant.MsgpackDecode" class="variant small-section-header"><a href="#variant.MsgpackDecode" class="anchor field"></a><span id='MsgpackDecode.v' class='invisible'><code>MsgpackDecode(Error)</code></span></span><span id="variant.MsgpackEncode" class="variant small-section-header"><a href="#variant.MsgpackEncode" class="anchor field"></a><span id='MsgpackEncode.v' class='invisible'><code>MsgpackEncode(Error)</code></span></span><span id="variant.ParseInt" class="variant small-section-header"><a href="#variant.ParseInt" class="anchor field"></a><span id='ParseInt.v' class='invisible'><code>ParseInt(<a class="struct" href="https://doc.rust-lang.org/nightly/core/num/struct.ParseIntError.html" title="struct core::num::ParseIntError">ParseIntError</a>)</code></span></span><span id="variant.Pickle" class="variant small-section-header"><a href="#variant.Pickle" class="anchor field"></a><span id='Pickle.v' class='invisible'><code>Pickle(Error)</code></span></span><span id="variant.TomlDecode" class="variant small-section-header"><a href="#variant.TomlDecode" class="anchor field"></a><span id='TomlDecode.v' class='invisible'><code>TomlDecode(<a class="struct" href="https://docs.rs/toml/0.4/toml/de/struct.Error.html" title="struct toml::de::Error">Error</a>)</code></span></span><span id="variant.TomlEncode" class="variant small-section-header"><a href="#variant.TomlEncode" class="anchor field"></a><span id='TomlEncode.v' class='invisible'><code>TomlEncode(<a class="enum" href="https://docs.rs/toml/0.4/toml/ser/enum.Error.html" title="enum toml::ser::Error">Error</a>)</code></span></span><span id="variant.Utf8" class="variant small-section-header"><a href="#variant.Utf8" class="anchor field"></a><span id='Utf8.v' class='invisible'><code>Utf8(<a class="struct" href="https://doc.rust-lang.org/nightly/core/str/struct.Utf8Error.html" title="struct core::str::Utf8Error">Utf8Error</a>)</code></span></span><span id="variant.UrlDecode" class="variant small-section-header"><a href="#variant.UrlDecode" class="anchor field"></a><span id='UrlDecode.v' class='invisible'><code>UrlDecode(<a class="struct" href="https://docs.rs/serde/1.0.20/serde/de/value/struct.Error.html" title="struct serde::de::value::Error">Error</a>)</code></span></span><span id="variant.UrlEncode" class="variant small-section-header"><a href="#variant.UrlEncode" class="anchor field"></a><span id='UrlEncode.v' class='invisible'><code>UrlEncode(Error)</code></span></span><span id="variant.Yaml" class="variant small-section-header"><a href="#variant.Yaml" class="anchor field"></a><span id='Yaml.v' class='invisible'><code>Yaml(<a class="struct" href="https://docs.rs/serde_yaml/0.7.1/serde_yaml/error/struct.Error.html" title="struct serde_yaml::error::Error">Error</a>)</code></span></span>
+                    <h2 id='methods' class='small-section-header'>
+                      Methods<a href='#methods' class='anchor'></a>
+                    </h2>
+                <h3 id='impl' class='impl'><span class='in-band'><code>impl <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#406-429' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.code' class="method"><span id='code.v' class='invisible'><code>pub fn <a href='#method.code' class='fnname'>code</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#407-428' title='goto source code'>[src]</a></span></h4>
+</div>
+            <h2 id='implementations' class='small-section-header'>
+              Trait Implementations<a href='#implementations' class='anchor'></a>
+            </h2>
+        <h3 id='impl-Debug' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a> for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-Debug' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#384' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class="method"><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class="struct" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html" title="struct core::fmt::Formatter">Formatter</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html" title="type core::fmt::Result">Result</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#384' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 id='impl-Display' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html" title="trait core::fmt::Display">Display</a> for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-Display' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#431-454' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt-1' class="method"><span id='fmt.v-1' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class="struct" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html" title="struct core::fmt::Formatter">Formatter</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html" title="type core::fmt::Result">Result</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#432-453' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter. <a href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html#tymethod.fmt">Read more</a></p>
+</div></div><h3 id='impl-StdError' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html" title="trait std::error::Error">StdError</a> for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-StdError' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#456-501' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.description' class="method"><span id='description.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html#tymethod.description' class='fnname'>description</a>(&amp;self) -&gt; &amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#457-478' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>A short description of the error. <a href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html#tymethod.description">Read more</a></p>
+</div><h4 id='method.cause' class="method"><span id='cause.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html#method.cause' class='fnname'>cause</a>(&amp;self) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="trait" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html" title="trait std::error::Error">StdError</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#480-500' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>The lower-level cause of this error, if any. <a href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html#method.cause">Read more</a></p>
+</div></div><h3 id='impl-From&lt;Error&gt;' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;Error&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;Error&gt;' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#503-507' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from' class="method"><span id='from.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: Error) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#504-506' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 id='impl-From&lt;Error&gt;-1' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;Error&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;Error&gt;-1' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#509-513' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-1' class="method"><span id='from.v-1' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: Error) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#510-512' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 id='impl-From&lt;Box&lt;Any + Send + &#39;static&gt;&gt;' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;<a class="trait" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html" title="trait core::any::Any">Any</a> + <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + 'static&gt;&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;Box&lt;Any + Send + &#39;static&gt;&gt;' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#521-528' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-2' class="method"><span id='from.v-2' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: <a class="struct" href="https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html" title="struct alloc::boxed::Box">Box</a>&lt;<a class="trait" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html" title="trait core::any::Any">Any</a> + <a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> + 'static&gt;) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#522-527' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 id='impl-From&lt;Error&gt;-2' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html" title="struct std::io::error::Error">Error</a>&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;Error&gt;-2' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#536-540' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-3' class="method"><span id='from.v-3' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: <a class="struct" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html" title="struct std::io::error::Error">Error</a>) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#537-539' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 id='impl-From&lt;Error&gt;-3' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;<a class="struct" href="https://docs.rs/serde_json/1.0.6/serde_json/error/struct.Error.html" title="struct serde_json::error::Error">Error</a>&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;Error&gt;-3' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#542-546' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-4' class="method"><span id='from.v-4' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: <a class="struct" href="https://docs.rs/serde_json/1.0.6/serde_json/error/struct.Error.html" title="struct serde_json::error::Error">Error</a>) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#543-545' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 id='impl-From&lt;Error&gt;-4' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;Error&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;Error&gt;-4' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#548-552' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-5' class="method"><span id='from.v-5' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: Error) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#549-551' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 id='impl-From&lt;Error&gt;-5' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;Error&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;Error&gt;-5' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#554-558' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-6' class="method"><span id='from.v-6' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: Error) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#555-557' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 id='impl-From&lt;ParseIntError&gt;' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/num/struct.ParseIntError.html" title="struct core::num::ParseIntError">ParseIntError</a>&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;ParseIntError&gt;' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#560-564' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-7' class="method"><span id='from.v-7' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: <a class="struct" href="https://doc.rust-lang.org/nightly/core/num/struct.ParseIntError.html" title="struct core::num::ParseIntError">ParseIntError</a>) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#561-563' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 id='impl-From&lt;Error&gt;-6' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;Error&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;Error&gt;-6' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#566-570' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-8' class="method"><span id='from.v-8' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: Error) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#567-569' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 id='impl-From&lt;Error&gt;-7' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;<a class="enum" href="https://docs.rs/toml/0.4/toml/ser/enum.Error.html" title="enum toml::ser::Error">Error</a>&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;Error&gt;-7' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#572-576' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-9' class="method"><span id='from.v-9' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: <a class="enum" href="https://docs.rs/toml/0.4/toml/ser/enum.Error.html" title="enum toml::ser::Error">Error</a>) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#573-575' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 id='impl-From&lt;Error&gt;-8' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;<a class="struct" href="https://docs.rs/toml/0.4/toml/de/struct.Error.html" title="struct toml::de::Error">Error</a>&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;Error&gt;-8' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#578-582' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-10' class="method"><span id='from.v-10' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: <a class="struct" href="https://docs.rs/toml/0.4/toml/de/struct.Error.html" title="struct toml::de::Error">Error</a>) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#579-581' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 id='impl-From&lt;Error&gt;-9' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;Error&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;Error&gt;-9' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#584-588' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-11' class="method"><span id='from.v-11' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: Error) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#585-587' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 id='impl-From&lt;Error&gt;-10' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;<a class="struct" href="https://docs.rs/serde/1.0.20/serde/de/value/struct.Error.html" title="struct serde::de::value::Error">Error</a>&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;Error&gt;-10' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#590-594' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-12' class="method"><span id='from.v-12' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: <a class="struct" href="https://docs.rs/serde/1.0.20/serde/de/value/struct.Error.html" title="struct serde::de::value::Error">Error</a>) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#591-593' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 id='impl-From&lt;Utf8Error&gt;' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/core/str/struct.Utf8Error.html" title="struct core::str::Utf8Error">Utf8Error</a>&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;Utf8Error&gt;' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#596-600' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-13' class="method"><span id='from.v-13' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: <a class="struct" href="https://doc.rust-lang.org/nightly/core/str/struct.Utf8Error.html" title="struct core::str::Utf8Error">Utf8Error</a>) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#597-599' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div><h3 id='impl-From&lt;Error&gt;-11' class='impl'><span class='in-band'><code>impl <a class="trait" href="https://doc.rust-lang.org/nightly/core/convert/trait.From.html" title="trait core::convert::From">From</a>&lt;<a class="struct" href="https://docs.rs/serde_yaml/0.7.1/serde_yaml/error/struct.Error.html" title="struct serde_yaml::error::Error">Error</a>&gt; for <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code><a href='#impl-From&lt;Error&gt;-11' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#602-606' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.from-14' class="method"><span id='from.v-14' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from' class='fnname'>from</a>(err: <a class="struct" href="https://docs.rs/serde_yaml/0.7.1/serde_yaml/error/struct.Error.html" title="struct serde_yaml::error::Error">Error</a>) -&gt; <a class="enum" href="../panser/enum.Error.html" title="enum panser::Error">Error</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/lib.rs.html#603-605' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Performs the conversion.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "panser";
+    </script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

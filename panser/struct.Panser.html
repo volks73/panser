@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Panser` struct in crate `panser`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Panser">
+
+    <title>panser::Panser - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc struct">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Struct Panser</p><div class="block items"><ul><li><a href="#methods">Methods</a></li></ul></div><p class='location'><a href='index.html'>panser</a></p><script>window.sidebarCurrent = {name: 'Panser', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Struct <a href='index.html'>panser</a>::<wbr><a class="struct" href=''>Panser</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/panser/panser.rs.html#42-52' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct Panser { /* fields omitted */ }</pre><div class='docblock'><p>A Builder for transcoding.</p>
+</div>
+                    <h2 id='methods' class='small-section-header'>
+                      Methods<a href='#methods' class='anchor'></a>
+                    </h2>
+                <h3 id='impl' class='impl'><span class='in-band'><code>impl <a class="struct" href="../panser/struct.Panser.html" title="struct panser::Panser">Panser</a></code><a href='#impl' class='anchor'></a></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/panser.rs.html#54-288' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class="method"><span id='new.v' class='invisible'><code>pub fn <a href='#method.new' class='fnname'>new</a>() -&gt; <a class="struct" href="../panser/struct.Panser.html" title="struct panser::Panser">Panser</a></code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/panser.rs.html#61-73' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Creates a new <code>Panser</code> with default options.</p>
+
+<p>The defaults are stdin for input, stdout for output, JSON for the from format, Msgpack for
+the to format, no delimited input, no delimited output, no sized input, and no sized
+output. The <code>Panser</code> struct is implemented following the Builder pattern. Methods can be
+chained to change the defaults.</p>
+</div><h4 id='method.delimited_input' class="method"><span id='delimited_input.v' class='invisible'><code>pub fn <a href='#method.delimited_input' class='fnname'>delimited_input</a>(self, delimited: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; Self</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/panser.rs.html#80-83' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Sets a delimiter byte for the input and changes to framed reading of the data.</p>
+
+<p>Data is read from the input source to the next delimiter byte. When the delimiter byte is
+reached, then all bytes up to the delimiter byte are transcoded. This continues until the
+End-of-File (EOF) is reached.</p>
+</div><h4 id='method.delimited_output' class="method"><span id='delimited_output.v' class='invisible'><code>pub fn <a href='#method.delimited_output' class='fnname'>delimited_output</a>(self, delimited: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; Self</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/panser.rs.html#88-91' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Sets a delimiter byte for the output.</p>
+
+<p>The delimiter byte is appended to the output data.</p>
+</div><h4 id='method.from' class="method"><span id='from.v' class='invisible'><code>pub fn <a href='#method.from' class='fnname'>from</a>(self, from: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="../panser/enum.FromFormat.html" title="enum panser::FromFormat">FromFormat</a>&gt;) -&gt; Self</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/panser.rs.html#96-99' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>The format of the input.</p>
+
+<p>If <code>None</code>, which is the default, then the input format is assumed to be JSON.</p>
+</div><h4 id='method.inputs' class="method"><span id='inputs.v' class='invisible'><code>pub fn <a href='#method.inputs' class='fnname'>inputs</a>(self, inputs: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="struct" href="https://doc.rust-lang.org/nightly/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;&amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;&gt;) -&gt; Self</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/panser.rs.html#105-110' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>The input source.</p>
+
+<p>If <code>None</code>, which is the default, then stdin is used as the source. The value is a path to
+a file.</p>
+</div><h4 id='method.output' class="method"><span id='output.v' class='invisible'><code>pub fn <a href='#method.output' class='fnname'>output</a>(self, output: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>&gt;) -&gt; Self</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/panser.rs.html#116-119' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>The output destination.</p>
+
+<p>If <code>None</code>, which is the default, then stdout is used as the destination. The value is
+a path to a file.</p>
+</div><h4 id='method.radix' class="method"><span id='radix.v' class='invisible'><code>pub fn <a href='#method.radix' class='fnname'>radix</a>(self, radix: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="../panser/enum.Radix.html" title="enum panser::Radix">Radix</a>&gt;) -&gt; Self</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/panser.rs.html#127-130' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Sets the written output to be a space-separated list of bytes represented as numeric
+strings with a specific radix, or notation.</p>
+
+<p>The data is still transcoded to the <code>to</code> format, but it is written to the output as
+a string. This is useful for debugging and creating an interactive console where humans are
+reading the serialized output.</p>
+</div><h4 id='method.run' class="method"><span id='run.v' class='invisible'><code>pub fn <a href='#method.run' class='fnname'>run</a>(self) -&gt; <a class="type" href="../panser/type.Result.html" title="type panser::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">()</a>&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/panser.rs.html#142-257' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Create a producer-consumer architecture for reading and writing data. </p>
+
+<p>A separate thread is created and started for reading the input until End-of-File (EOF) is
+reached. If reading stdin, Ctrl+D can be used to force an EOF.</p>
+
+<p>If input is <code>None</code>, then stdin is used for input. If output is <code>None</code>, then stdout is used
+for output. If the input (from) format is <code>None</code>, then the format is determined from the file
+extension if a file is provided and it has an extension. The default input format is JSON. If
+the input format is not JSON and a file with an appropriate extension is <em>not</em> used, then the
+<code>from</code> parameter should not be <code>None</code>. A similar procedure is used for the output (to) format.</p>
+</div><h4 id='method.sized_input' class="method"><span id='sized_input.v' class='invisible'><code>pub fn <a href='#method.sized_input' class='fnname'>sized_input</a>(self, sized: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; Self</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/panser.rs.html#266-269' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Indicates the first four bytes is the total data length and changes to framed reading of
+the data.</p>
+
+<p>The first four bytes are read as an unsigned 32-bit integer (u32) in Big Endian (Network
+Order). Then N number of bytes are read, where N is the size converted from the first
+four bytes. Once N bytes are read, all bytes up to the size are transcoded. This
+continues until the End-of-File (EOF) is reached.</p>
+</div><h4 id='method.sized_output' class="method"><span id='sized_output.v' class='invisible'><code>pub fn <a href='#method.sized_output' class='fnname'>sized_output</a>(self, sized: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; Self</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/panser.rs.html#275-278' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>Prepends the length of the data to the output.</p>
+
+<p>The size of the output is prepended as an unsigned 32-bit integer (u32) in Big Endian
+(Network Order).</p>
+</div><h4 id='method.to' class="method"><span id='to.v' class='invisible'><code>pub fn <a href='#method.to' class='fnname'>to</a>(self, to: <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="../panser/enum.ToFormat.html" title="enum panser::ToFormat">ToFormat</a>&gt;) -&gt; Self</code></span><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../src/panser/panser.rs.html#284-287' title='goto source code'>[src]</a></span></h4>
+<div class='docblock'><p>The format of the output.</p>
+
+<p>If <code>None</code>, which is the default, then the output format is assumed to be MessagePack
+(Msgpack).</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "panser";
+    </script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

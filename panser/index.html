@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `panser` crate.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, panser">
+
+    <title>panser - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc mod">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Crate panser</p><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#functions">Functions</a></li><li><a href="#types">Type Definitions</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'panser', ty: 'mod', relpath: '../'};</script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Crate <a class="mod" href=''>panser</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/panser/lib.rs.html#18-606' title='goto source code'>[src]</a></span></h1>
+<div class='docblock'>
+<h1 id='panser' class='section-header'><a href='#panser'>Panser</a></h1>
+<p>Panser is primarily a Command-Line Interface (CLI) application for (de)serializing data formats
+in a UNIX, pipe-friendly manner, but much of the functionality is provided in the
+library/crate.</p>
+
+<h2 id='binary-usage' class='section-header'><a href='#binary-usage'>Binary Usage</a></h2>
+<h3 id='examples' class='section-header'><a href='#examples'>Examples</a></h3>
+<p>Convert <a href="http://www.json.org">JSON</a> from stdin to <a href="http://msgpack.org">MessagePack</a> (Msgpack)
+and write to stdout. Panser converts JSON to Msgpack by default. See the <code>-h,--help</code> text for
+more information and options. Specifically, see the <code>-f,--from</code> and <code>-t,--to</code> help text for
+lists of supported formats. The <code>-r,--radix</code> option is used to display the serialized output as
+a space-separated list of bytes, where each byte is a string with formatted with the specified
+radix. If the <code>-r,--radix</code> was <em>not</em> used, the serialized output would be written as binary
+data to stdout and not be very human readable but easily piped to other applications.</p>
+
+<pre><code class="language-bash">$ echo &#39;{&quot;bool&quot;:true}&#39; | panser --radix hex
+81 A4 62 6F 6F 6C C3
+</code></pre>
+
+<p>Pipe the output to another application. Here, the
+<a href="http://linuxcommand.org/man_pages/xxd1.html">xxd</a> application receives the serialized
+MessagePack binary output from Panser and displays it using the C-style notation for bytes.
+This demonstrates piping the output of Panser to another application, but the <code>-r,--radix</code>
+option with the <code>hex</code> value serves a similar function to using the <code>xxd</code> application.</p>
+
+<pre><code class="language-bash">$ echo &#39;{&quot;bool&quot;:true&quot;}&#39; | panser | xxd -i
+  0x81, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3
+</code></pre>
+
+<p>Similarly, convert JSON from a file to Msgpack and write to stdout. If no file is specified,
+then data is read continuously from stdin until End-of-File (EOF) is reached (Ctrl+D). The
+short names and possible value for the <code>-r,--radix</code> option is used for more succinct usage.</p>
+
+<pre><code class="language-bash">$ panser -r h file.json
+81 A4 62 6F 6F 6C C3
+</code></pre>
+
+<p>Redirection can also be used.</p>
+
+<pre><code class="language-bash">$ panser -r h &lt; file.json
+81 A4 62 6F 6F 6C C3
+</code></pre>
+
+<p>Write data to file instead of stdout. The output file will contain the binary MessagePack data.</p>
+
+<pre><code class="language-bash">$ echo &#39;{&quot;bool&quot;:true,&quot;number&quot;:1.234}&#39; | panser -o file.msgpack
+$ cat file.msgpack | xxd -i
+  0x82, 0xa4, 0x62, 0x6f, 0x6f, 0x6c, 0xc3, 0xa6, 0x6e, 0x75, 0x6d, 0x62,
+  0x65, 0x72, 0xcb, 0x3f, 0xf3, 0xbe, 0x76, 0xc8, 0xb4, 0x39, 0x58
+</code></pre>
+
+<p>If the <code>-r,--radix</code> option is used, then the contents of the output file would <em>not</em> be
+Msgpack data, but the space-separated list of bytes as numeric strings. </p>
+
+<pre><code class="language-bash">$ echo &#39;{&quot;bool&quot;:true,&quot;number&quot;:1.234}&#39; | panser -r h -o file.msgpack
+$ cat file.msgpack
+82 A4 62 6F 6F 6C C3 A6 6E 75 6D 62 65 72 CB 3F F3 BE 76 C8 B4 39 58
+</code></pre>
+
+<p>Add size-based framing to the output. Size-based framing is prepending the total serialized
+data length as an unsigned 32-bit integer in Big Endian (Network Order), and it is often used
+to aid in buffering and creating stream-based applications. Note the first four bytes.</p>
+
+<pre><code class="language-bash">$ echo &#39;{&quot;bool&quot;:true,&quot;number&quot;:1.234}&#39; | panser -r h --sized-output 
+00 00 00 17 82 A4 62 6F 6F 6C C3 A6 6E 75 6D 62 65 72 CB 3F F3 BE 76 C8 B4 39 58
+</code></pre>
+
+<p>The same can be done for input to remove the size-based framing. Note the use of the <code>-f</code> option to
+indicate the input format is MessagePack and <em>not</em> JSON. The first four bytes are removed.
+Size-based framing can be added or removed from any supported format, not just MessagePack.</p>
+
+<pre><code class="language-bash">$ echo &#39;{&quot;bool&quot;:true,&quot;number&quot;:1.234}&#39; | panser --sized-output | panser -r h -f msgpack --sized-input
+82 A4 62 6F 6F 6C C3 A6 6E 75 6D 62 65 72 CB 3F F3 BE 76 C8 B4 39 58
+</code></pre>
+
+<p>Another form of framing data in a stream involves delimiting each frame with delimiter byte.
+Panser can also handle delimiter-based framing of data. This uses the ASCII newline character
+(<code>\n</code>, 10 dec, 0A hex, or 012 octal) as the delimiter.</p>
+
+<pre><code class="language-bash">$ echo &#39;{&quot;bool&quot;:true,&quot;number&quot;:1.234}&#39; | panser --delimited-output 10d | panser -r h -f msgpack --delimited-input 10d
+82 A4 62 6F 6F 6C C3 A6 6E 75 6D 62 65 72 CB 3F F3 BE 76 C8 B4 39 58$
+</code></pre>
+
+<p>Using the delimited input and output is also a neat way to create an interactive console for Panser.</p>
+
+<pre><code class="language-bash">$ panser -d 0Ah -t Hjson
+{&quot;bool&quot;:true&quot;}
+{
+    &quot;bool&quot;: true
+}
+{&quot;bool&quot;:true,&quot;number&quot;:1.234}
+{
+    &quot;bool&quot;: true,
+    &quot;number&quot;: 1.234
+}
+</code></pre>
+
+<p>If the output is a binary format, like Msgpack, the <code>-r,--radix</code> becomes very useful for
+creating an interactive console.</p>
+
+<pre><code class="language-bash">$ panser -r h -d 0Ah
+{&quot;bool&quot;:true&quot;}
+81 A4 62 6F 6F 6C C3
+{&quot;bool&quot;:true,&quot;number&quot;:1.234}
+82 A4 62 6F 6F 6C C3 A6 6E 75 6D 62 65 72 CB 3F F3 BE 76 C8 B4 39 58
+</code></pre>
+
+<p>Data can be sent to a network device using the <a href="https://linux.die.net/man/1/nc">nc</a> command. The JSON
+will be transcoded to size-based framed MessagePack and streamed to the server at the IP
+address and TCP port used with the <code>nc</code> command. This was actually the primary motivation for
+creating the Panser application.</p>
+
+<pre><code class="language-bash">$ echo &#39;{&quot;bool&quot;:true,&quot;numeber&quot;:1.234}&#39; | panser --sized-output | nc 127.0.0.1 1234
+</code></pre>
+
+<h3 id='exit-codes' class='section-header'><a href='#exit-codes'>Exit Codes</a></h3>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Reason</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>0</td>
+<td>Success, no error</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Failure, error transcoding</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Failure, generic error</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Failure, Input/Output (IO)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Failure, error parsing integer</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Failure, error with UTF-8 encoding</td>
+</tr>
+</tbody>
+</table>
+</div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.Panser.html"
+                                  title='struct panser::Panser'>Panser</a></td>
+                           <td class='docblock-short'>
+                                <p>A Builder for transcoding.</p>
+                           </td>
+                       </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.Error.html"
+                                  title='enum panser::Error'>Error</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.Framing.html"
+                                  title='enum panser::Framing'>Framing</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.FromFormat.html"
+                                  title='enum panser::FromFormat'>FromFormat</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.Radix.html"
+                                  title='enum panser::Radix'>Radix</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="enum" href="enum.ToFormat.html"
+                                  title='enum panser::ToFormat'>ToFormat</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.deserialize.html"
+                                  title='fn panser::deserialize'>deserialize</a></td>
+                           <td class='docblock-short'>
+                                <p>Deserialize to a universal, arbitrary value.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.serialize.html"
+                                  title='fn panser::serialize'>serialize</a></td>
+                           <td class='docblock-short'>
+                                <p>Serialize from a universal, arbitrary value.</p>
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.transcode.html"
+                                  title='fn panser::transcode'>transcode</a></td>
+                           <td class='docblock-short'>
+                                <p>Convert the input in one format to the output of another format.</p>
+                           </td>
+                       </tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="type" href="type.Result.html"
+                                  title='type panser::Result'>Result</a></td>
+                           <td class='docblock-short'>
+                                
+                           </td>
+                       </tr></table></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "panser";
+    </script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>

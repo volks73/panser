@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Christopher R. Field" />
+  <title>PANSER(1)</title>
+  <style type="text/css">code{white-space: pre;}</style>
+</head>
+<body>
+<div id="header">
+<h1 class="title">PANSER(1)</h1>
+<h2 class="author">Christopher R. Field</h2>
+<h3 class="date">April 2017</h3>
+</div>
+<h1 id="name">NAME</h1>
+<p>panser - A utility for (de)serializing data formats</p>
+<h1 id="synopsis">SYNOPSIS</h1>
+<p>panser [<em>options</em>] [<em>input-file</em>]...</p>
+<h1 id="description">DESCRIPTION</h1>
+<p>The Panser project is a Command-Line Interface (CLI) application for (de)serializing data formats in a UNIX, pipe-friendly manner. The project is primarily written in the Rust programming language. The idea is to have a single application for reading data in one format on stdin and writing the same data but in a different format to stdout. It is possible to read data from a file and write to a file, but the application is focused on creating streams of data that can be piped into a socket, such as a TCP stream. The primary motivator for the application is to read JSON data and output to the MessagePack (Msgpack) format which could be used with a TCP stream to build a low-level Application Programming Interface (API) for a network-enabled application. The reverse is also a desired goal, reading in Msgpack data (binary, machine-readable) and transcoding it to JSON (text, human-readable).</p>
+<h1 id="options">OPTIONS</h1>
+<dl>
+<dt>-d, --delimited=<em>DELIMITER</em></dt>
+<dd>Indicates each frame, or message, within a stream of data is separated by a delimiter byte and the same delimiter byte should be appended to the output after each frame, or message. The <em>DELIMITER</em> byte is specified as a string number. A radix suffix can be used to denote the notation: (b) binary, (d) decimal, (h) hexadecimal, or (o) octal. If no radix suffix is specified, then hexadecimal notation is assumed. For example, the ASCII newline character ('') can be supplied as the <em>DELIMITER</em> using any of the following values: 1010b, 10d, 0Ah, 012o, or 0A.
+</dd>
+<dt>--delimited-input=<em>DELIMITER</em></dt>
+<dd>Indicates each frame, or message, within a stream of data is separated by a delimiter byte. The <em>DELIMITER</em> byte is specified as a string number. A radix suffix can be used to denote the notation: (b) binary, (d) decimal, (h) hexadecimal, or (o) octal. If no radix suffix is specified, then hexadecimal notation is assumed. For example, the ASCII newline character ('') can be supplied as the <em>DELIMITER</em> using any of the following values: 1010b, 10d, 0Ah, 012o, or 0A.
+</dd>
+<dt>--delimited-output=<em>DELIMITER</em></dt>
+<dd>Appends the <em>DELIMITER</em> byte to the end of the transcode frame, or message. The <em>DELIMITER</em> byte is specified as a string number. A radix suffix can be used to denote the notation: (b) binary, (d) decimal, (h) hexadecimal, or (o) octal. If no radix suffix is specified, then hexadecimal notation is assumed. For example, the ASCII newline character ('') can be supplied as the <em>DELIMITER</em> using any of the following values: 1010b, 10d, 0Ah, 012o, or 0A.
+</dd>
+<dt>-f <em>FORMAT</em>, --from=<em>FORMAT</em></dt>
+<dd>Specify input format. <em>FORMAT</em> can be <code>Bincode</code>, <code>CBOR</code>, <code>Envy</code>, <code>Hjson</code>, <code>JSON</code>, <code>Msgpack</code>, <code>Pickle</code>, <code>TOML</code>, <code>URL</code>, or <code>YAML</code>. The <em>FORMAT</em> is case insensitive. The default is <code>JSON</code>.
+</dd>
+<dt>-o <em>FILE</em>, --output=<em>FILE</em></dt>
+<dd>Write output to <em>FILE</em> instead of <em>stdout</em>. If the <code>-t,--to</code> option is not used, the file extension for <em>FILE</em> is used to determine the format for the output.
+</dd>
+<dt>-r <em>RADIX</em>, --radix=<em>RADIX</em></dt>
+<dd>Changes the output to be a space-separated list of bytes, where each byte is a numeric string with the <em>RADIX</em>. The serialized input data is transcoded to the output format specified with the <code>-t,--to</code> option, but it is written to the output as a string. This si useful for debugging serialization formats and creating an interactive console with binary output data. Note, if delimited-basd framing is employed, the delimiter byte is <em>not</em> included in the space-separated list of bytes. <em>RADIX</em> can be <code>b</code>, <code>bin</code>, <code>binary</code>, <code>d</code>, <code>dec</code>, <code>decimal</code>, <code>h</code>, <code>hex</code>, <code>hexadecimal</code>, <code>o</code>, <code>oct</code>, or <code>octal</code> and it is case insensitive.
+</dd>
+<dt>-s, --sized</dt>
+<dd>Indicates the first four bytes of the input is an unsigned 32-bit integer in Big Endian (Network Order), which is the total size in bytes of the input frame, or message, and prepends the total size in bytes of the serialized data to the output frame, or message.
+</dd>
+<dt>--sized-input</dt>
+<dd>Indicates the first four bytes of the input is an unsigned 32-bit integer in Big Endian (Network Order), which is the total size in bytes of the input frame, or message.
+</dd>
+<dt>--sized-output</dt>
+<dd>Prepends the total size of the serialized data as an unsigned 32-bit integer in Big Endian (Network Order) to the output frame, or message.
+</dd>
+<dt>-t <em>FORMAT</em>, --to=<em>FORMAT</em></dt>
+<dd>Specify output format. <em>FORMAT</em> can be <code>Bincode</code>, <code>CBOR</code>, <code>Hjson</code>, <code>JSON</code>, <code>Msgpack</code>, <code>Pickle</code>, <code>TOML</code>, <code>URL</code>, or <code>YAML</code>. The <em>FORMAT</em> is case insensitive. The default is <code>Msgpack</code>.
+</dd>
+</dl>
+</body>
+</html>
