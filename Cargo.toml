@@ -1,5 +1,5 @@
 [package]
-name = "panser"
+name = "Panser"
 description = "A command line utility for (de)serializing data"
 version = "0.5.1"
 authors = ["Christopher Field <cfield2@gmail.com>"]
@@ -9,12 +9,16 @@ keywords = ["cli", "serialization", "transcode", "deserialization"]
 categories = ["encoding", "command-line-utilities", "value-formatting"]
 homepage = "https://github.com/volks73/panser"
 repository = "https://github.com/volks73/panser"
+documentation = "https://volks73.github.io/panser"
 build = "build.rs"
 
 [[bin]]
 name = "panser"
 path = "src/main.rs"
 doc = false
+
+[lib]
+name = "panser"
 
 [dependencies]
 ansi_term = "0.10"
