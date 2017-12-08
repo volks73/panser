@@ -237,8 +237,3 @@ $ ehco '{"bool":true}' | panser | wsta 127.0.0.1:1234 | panser -f msgpack -t jso
 
 See the LICENSE file for more information about licensing and copyright.
 
-## Contributors
-
-See the AUTHORS file for information about contributors. Contributors are listed alphabetically by family name.
-
-
