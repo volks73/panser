@@ -37,9 +37,9 @@ fn main() {
     // avoid build errors on non-windows platforms, a cfg guard should be put in place.
     #[cfg(windows)] ansi_term::enable_ansi_support().unwrap();
 
-    let matches = App::new("panser")
+    let matches = App::new(crate_name!())
         .version(crate_version!())
-        .about("An application for transcoding serialization formats.") 
+        .about(crate_description!()) 
         .arg(Arg::with_name("delimited")
              .help("Inidcates a complete message is delimited by the specified byte value and the byte should be appended to the output of each message. This is equivalent to using the '--delimited-input' and '--delimited-output' options with the same value. The delimiter byte can be specified as a (b) binary, (d) decimal, (h) hexadecimal, or (o) octal string value by using the character as a radix suffix. For example, '0Ah' would be the ASCII newline character specified as a hexadecimal string value. If no radix suffix is specified, then hexadecimal notation is assumed. This option cannot be used with the '--sized', '--sized-input', or '--sized-output' flags.")
              .long("delimited")
