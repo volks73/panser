@@ -160,7 +160,7 @@
 
 extern crate bincode;
 extern crate byteorder;
-//extern crate envy;
+extern crate envy;
 extern crate rmp_serde;
 extern crate serde;
 extern crate serde_cbor;
@@ -423,7 +423,7 @@ pub enum Error {
     Bincode(bincode::Error),
     /// Decoding/encoding of the CBOR format failed.
     Cbor(serde_cbor::Error),
-    //Envy(envy::Error),
+    Envy(envy::Error),
     /// End-of-File (EOF) reached.
     Eof,
     /// A generic or custom error occurred. The message should contain the detailed information.
@@ -465,7 +465,7 @@ impl Error {
         match *self {
             Error::Bincode(..) => 1,
             Error::Cbor(..) => 1,
-            //Error::Envy(..) => 1,
+            Error::Envy(..) => 1,
             Error::Eof => 0, // Not actually an error
             Error::Generic(..) => 2,
             //Error::Hjson(..) => 1,
@@ -490,7 +490,7 @@ impl fmt::Display for Error {
         match *self {
             Error::Bincode(ref err) => write!(f, "{}", err),
             Error::Cbor(ref err) => write!(f, "{}", err),
-            //Error::Envy(ref message) => write!(f, "{}", message),
+            Error::Envy(ref message) => write!(f, "{}", message),
             Error::Eof => write!(f, "End of file reached"),
             Error::Generic(ref message) => write!(f, "{}", message),
             //Error::Hjson(ref message) => write!(f, "{}", message),
@@ -515,7 +515,7 @@ impl StdError for Error {
         match *self {
             Error::Bincode(..) => "Bincode",
             Error::Cbor(..) => "CBOR",
-            //Error::Envy(..) => "Envy error",
+            Error::Envy(..) => "Envy error",
             Error::Eof => "EOF",
             Error::Generic(..) => "Generic",
             //Error::Hjson(..) => "Hjson error",
@@ -538,7 +538,7 @@ impl StdError for Error {
         match *self {
             Error::Bincode(ref err) => Some(err),
             Error::Cbor(ref err) => Some(err),
-            //Error::Envy(ref err) => Some(err),
+            Error::Envy(ref err) => Some(err),
             Error::Io(ref err) => Some(err),
             //Error::Hjson(ref err) => Some(err),
             Error::Json(ref err) => Some(err),
@@ -569,11 +569,11 @@ impl From<serde_cbor::Error> for Error {
     }
 }
 
-//impl From<envy::Error> for Error {
-//fn from(err: envy::Error) -> Error {
-//Error::Envy(err)
-//}
-//}
+impl From<envy::Error> for Error {
+    fn from(err: envy::Error) -> Error {
+        Error::Envy(err)
+    }
+}
 
 impl From<Box<dyn Any + Send + 'static>> for Error {
     fn from(err: Box<dyn Any + Send + 'static>) -> Error {

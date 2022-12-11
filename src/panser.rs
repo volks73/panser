@@ -16,7 +16,7 @@
 // along with Panser.  If not, see <http://www.gnu.org/licenses/>.
 
 use bincode;
-//use envy;
+use envy;
 use rmp_serde;
 use serde_cbor;
 use serde_json;
@@ -294,8 +294,7 @@ pub fn deserialize(input: &[u8], from: FromFormat) -> Result<serde_json::Value> 
         match from {
             FromFormat::Bincode => bincode::deserialize::<serde_json::Value>(input)?,
             FromFormat::Cbor => serde_cbor::from_slice::<serde_json::Value>(input)?,
-            FromFormat::Envy => unimplemented!(),
-            //FromFormat::Envy => envy::from_env::<serde_json::Value>()?,
+            FromFormat::Envy => envy::from_env::<serde_json::Value>()?,
             // TODO: Change to use Hjson serde library. Until the Hjson crate is updated to work
             // with serde v0.9 or newer, the serde_json create is used. The Hjson crate currently
             // uses serde v0.8 and causes compiler errors.
