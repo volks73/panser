@@ -6,12 +6,12 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Panser is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Panser.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -25,7 +25,8 @@ use serde_urlencoded;
 use serde_yaml;
 use toml;
 
-use byteorder::{ByteOrder, BigEndian, ReadBytesExt};
+use super::{Error, Framing, FromFormat, Radix, Result, ToFormat};
+use byteorder::{BigEndian, ByteOrder, ReadBytesExt};
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Cursor, ErrorKind, Write};
 use std::panic;
@@ -33,7 +34,6 @@ use std::path::Path;
 use std::str::{self, FromStr};
 use std::sync::mpsc;
 use std::thread;
-use super::{Error, Framing, FromFormat, Radix, Result, ToFormat};
 
 type Sender = mpsc::Sender<serde_json::Value>;
 type Receiver = mpsc::Receiver<serde_json::Value>;
@@ -103,9 +103,7 @@ impl Panser {
     /// If `None`, which is the default, then stdin is used as the source. The value is a path to
     /// a file.
     pub fn inputs(mut self, inputs: Option<Vec<&str>>) -> Self {
-        self.inputs = inputs.map(|i| {
-            i.iter().map(|f| String::from(*f)).collect::<Vec<String>>()
-        });
+        self.inputs = inputs.map(|i| i.iter().map(|f| String::from(*f)).collect::<Vec<String>>());
         self
     }
 
@@ -129,7 +127,7 @@ impl Panser {
         self
     }
 
-    /// Create a producer-consumer architecture for reading and writing data. 
+    /// Create a producer-consumer architecture for reading and writing data.
     ///
     /// A separate thread is created and started for reading the input until End-of-File (EOF) is
     /// reached. If reading stdin, Ctrl+D can be used to force an EOF.
@@ -143,10 +141,10 @@ impl Panser {
         let (tx, rx) = mpsc::channel::<serde_json::Value>();
         // Use `BufRead` instead of `Read` to add additional reading methods, like `read_until`. The
         // `Send` trait is needed to move the reader to the read thread.
-        let readers: Vec<Box<BufRead + Send>> = {
+        let readers: Vec<Box<dyn BufRead + Send>> = {
             if let Some(i) = self.inputs.as_ref() {
                 // There has to be a way to do this with map and collect.
-                let mut files: Vec<Box<BufRead + Send>> = Vec::new();
+                let mut files: Vec<Box<dyn BufRead + Send>> = Vec::new();
                 for f in i {
                     files.push(Box::new(BufReader::new(File::open(f)?)));
                 }
@@ -155,7 +153,7 @@ impl Panser {
                 vec![Box::new(BufReader::new(io::stdin()))]
             }
         };
-        let writer: Box<Write> = {
+        let writer: Box<dyn Write> = {
             if let Some(o) = self.output.as_ref() {
                 Box::new(File::create(o)?)
             } else {
@@ -164,13 +162,13 @@ impl Panser {
         };
         let froms = {
             if let Some(files) = self.inputs.as_ref() {
-                files.iter()
+                files
+                    .iter()
                     .map(|f| {
                         self.from.unwrap_or({
                             if let Some(e) = Path::new(f).extension() {
-                                FromFormat::from_str(
-                                    e.to_str().unwrap_or("json")
-                                ).unwrap_or(FromFormat::Json)
+                                FromFormat::from_str(e.to_str().unwrap_or("json"))
+                                    .unwrap_or(FromFormat::Json)
                             } else {
                                 FromFormat::Json
                             }
@@ -184,9 +182,7 @@ impl Panser {
         let to = self.to.unwrap_or({
             if let Some(o) = self.output.as_ref() {
                 if let Some(e) = Path::new(o).extension() {
-                    ToFormat::from_str(
-                        e.to_str().unwrap_or("msgpack")
-                    ).unwrap_or(ToFormat::Msgpack)
+                    ToFormat::from_str(e.to_str().unwrap_or("msgpack")).unwrap_or(ToFormat::Msgpack)
                 } else {
                     ToFormat::Msgpack
                 }
@@ -194,20 +190,26 @@ impl Panser {
                 ToFormat::Msgpack
             }
         });
-        let input_framing = self.delimited_input.as_ref().map_or_else(|| {
-            if self.sized_input {
-                Ok(Some(Framing::Sized))
-            } else {
-                Ok(None)
-            }
-        }, to_framing_delimited)?;
-        let output_framing = self.delimited_output.as_ref().map_or_else(|| {
-            if self.sized_output {
-                Ok(Some(Framing::Sized))
-            } else {
-                Ok(None)
-            }
-        }, to_framing_delimited)?;
+        let input_framing = self.delimited_input.as_ref().map_or_else(
+            || {
+                if self.sized_input {
+                    Ok(Some(Framing::Sized))
+                } else {
+                    Ok(None)
+                }
+            },
+            to_framing_delimited,
+        )?;
+        let output_framing = self.delimited_output.as_ref().map_or_else(
+            || {
+                if self.sized_output {
+                    Ok(Some(Framing::Sized))
+                } else {
+                    Ok(None)
+                }
+            },
+            to_framing_delimited,
+        )?;
         // Set the panic hook to do nothing. This suppresses the
         //
         // >thread '<unnamed>' panicked at 'Box<Any>', src/panser.rs:223
@@ -218,17 +220,13 @@ impl Panser {
         // appropriate error code without having to implement redundant error message printing and
         // exiting. This probably shold be changed in the future to user a verbose flag to re-enable
         // the full panic message when debugging.
-        panic::set_hook(Box::new(|_|{}));
+        panic::set_hook(Box::new(|_| {}));
         let handle = thread::spawn(move || {
             for r in readers.into_iter().zip(froms) {
                 let (reader, from) = r;
-                let result = read(reader, from, input_framing, &tx).or_else(|e| {
-                    match e {
-                        Error::Eof => {
-                            Ok(())
-                        },
-                        _ => Err(e),
-                    }
+                let result = read(reader, from, input_framing, &tx).or_else(|e| match e {
+                    Error::Eof => Ok(()),
+                    _ => Err(e),
                 });
                 // Do not use `unwrap` for the read function result. Using `unwrap` yields an
                 // `Unknown error: Any` message, which is not very useful. The `unwrap` method for
@@ -246,8 +244,8 @@ impl Panser {
                 //
                 // There is probably a better way to do all of this, but I have not found it yet.
                 match result {
-                    Ok(_) => {},
-                    Err(e) => panic!(e),
+                    Ok(_) => {}
+                    Err(e) => panic!("{}", e),
                 }
             }
         });
@@ -304,7 +302,10 @@ pub fn deserialize(input: &[u8], from: FromFormat) -> Result<serde_json::Value> 
             FromFormat::Hjson => serde_json::from_slice::<serde_json::Value>(input)?,
             FromFormat::Json => serde_json::from_slice::<serde_json::Value>(input)?,
             FromFormat::Msgpack => rmp_serde::from_slice::<serde_json::Value>(input)?,
-            FromFormat::Pickle => serde_pickle::from_slice::<serde_json::Value>(input)?,
+            FromFormat::Pickle => serde_pickle::from_slice::<serde_json::Value>(
+                input,
+                serde_pickle::DeOptions::default(),
+            )?,
             FromFormat::Toml => toml::from_slice::<serde_json::Value>(input)?,
             FromFormat::Url => serde_urlencoded::from_bytes::<serde_json::Value>(input)?,
             FromFormat::Yaml => serde_yaml::from_slice::<serde_json::Value>(input)?,
@@ -317,20 +318,20 @@ pub fn deserialize(input: &[u8], from: FromFormat) -> Result<serde_json::Value> 
 /// The `serde_json::Value` type is used as a container for an arbitrary value that can be
 /// serialized to any format.
 pub fn serialize(value: serde_json::Value, to: ToFormat) -> Result<Vec<u8>> {
-    Ok({ 
+    Ok({
         match to {
-            ToFormat::Bincode => bincode::serialize(&value, bincode::Infinite)?,
+            ToFormat::Bincode => bincode::serialize(&value)?,
             ToFormat::Cbor => serde_cbor::to_vec(&value)?,
             // TODO: Change to use Hjson serde library. Until the Hjson crate is updated to work
             // with serde v0.9 or newer, the serde_json create is used. The Hjson crate currently
             // uses serde v0.8 and causes compiler errors.
-            ToFormat::Hjson => serde_json::to_vec_pretty(&value)?, 
+            ToFormat::Hjson => serde_json::to_vec_pretty(&value)?,
             ToFormat::Json => serde_json::to_vec(&value)?,
             ToFormat::Msgpack => rmp_serde::to_vec(&value)?,
-            ToFormat::Pickle => serde_pickle::to_vec(&value, true)?,
+            ToFormat::Pickle => serde_pickle::to_vec(&value, serde_pickle::SerOptions::default())?,
             ToFormat::Toml => toml::to_vec(&value)?,
             ToFormat::Url => serde_urlencoded::to_string(&value)?.into_bytes(),
-            ToFormat::Yaml => serde_yaml::to_vec(&value)?,
+            ToFormat::Yaml => serde_yaml::to_string(&value)?.into_bytes(),
         }
     })
 }
@@ -351,7 +352,7 @@ pub fn serialize(value: serde_json::Value, to: ToFormat) -> Result<Vec<u8>> {
 /// fn main() {
 ///     let input = "{\"bool\":true}";
 ///     let output = panser::transcode(
-///         input.as_bytes(), 
+///         input.as_bytes(),
 ///         FromFormat::Json,
 ///         ToFormat::Msgpack
 ///     ).unwrap();
@@ -361,7 +362,6 @@ pub fn serialize(value: serde_json::Value, to: ToFormat) -> Result<Vec<u8>> {
 pub fn transcode(input: &[u8], from: FromFormat, to: ToFormat) -> Result<Vec<u8>> {
     serialize(deserialize(input, from)?, to)
 }
-
 
 /// Converts a string to a delimiter byte.
 ///
@@ -384,7 +384,7 @@ fn to_framing_delimited(s: &String) -> Result<Option<Framing>> {
     Ok(Some(Framing::Delimited(value)))
 }
 
-/// Reads exact length of bytes. 
+/// Reads exact length of bytes.
 ///
 /// This assumes the first four bytes of a message are the total data
 /// length encoded as an unsigned 32-bit integer in Big Endian (Network Order). Reading continues
@@ -396,20 +396,18 @@ fn to_framing_delimited(s: &String) -> Result<Option<Framing>> {
 fn read_exact<R: BufRead>(mut reader: R, from: FromFormat, tx: &Sender) -> Result<()> {
     loop {
         let mut frame_length_buf = [0; 4];
-        reader.read_exact(&mut frame_length_buf).map_err(|e| {
-            match e.kind() {
+        reader
+            .read_exact(&mut frame_length_buf)
+            .map_err(|e| match e.kind() {
                 ErrorKind::UnexpectedEof => Error::Eof,
-                _ => Error::Io(e)
-            }
-        })?;
+                _ => Error::Io(e),
+            })?;
         let mut frame_length_cursor = Cursor::new(frame_length_buf);
         let frame_length = frame_length_cursor.read_u32::<BigEndian>()?;
         let mut buf = vec![0; frame_length as usize];
-        reader.read_exact(&mut buf).map_err(|e| {
-            match e.kind() {
-                ErrorKind::UnexpectedEof => Error::Eof,
-                _ => Error::Io(e)
-            }
+        reader.read_exact(&mut buf).map_err(|e| match e.kind() {
+            ErrorKind::UnexpectedEof => Error::Eof,
+            _ => Error::Io(e),
         })?;
         tx.send(deserialize(&buf, from)?).unwrap();
     }
@@ -422,15 +420,20 @@ fn read_exact<R: BufRead>(mut reader: R, from: FromFormat, tx: &Sender) -> Resul
 /// Since the data is framed, the application can read messages as they as they are "streamed" into
 /// the reader without having to read the entire stream or file into memory. Messages can be
 /// transcoded as they arrive and continuous written to output.
-fn read_until<R: BufRead>(mut reader: R, from: FromFormat, delimiter: u8, tx: &Sender) -> Result<()> {
+fn read_until<R: BufRead>(
+    mut reader: R,
+    from: FromFormat,
+    delimiter: u8,
+    tx: &Sender,
+) -> Result<()> {
     loop {
         let mut buf = Vec::new();
-        let bytes_count = reader.read_until(delimiter, &mut buf).map_err(|e| {
-            match e.kind() {
+        let bytes_count = reader
+            .read_until(delimiter, &mut buf)
+            .map_err(|e| match e.kind() {
                 ErrorKind::UnexpectedEof => Error::Eof,
-                _ => Error::Io(e)
-            }
-        })?;
+                _ => Error::Io(e),
+            })?;
         // If the `read_until` method is at the End-of-File (EOF), then it will return zero for the
         // number of bytes read and the buffer will be unmodified. In this case, that means an
         // empty Vec.
@@ -446,7 +449,12 @@ fn read_until<R: BufRead>(mut reader: R, from: FromFormat, delimiter: u8, tx: &S
 /// The producer loop for reading (input) and writing (output) serialized data.
 ///
 /// Determines the appropriating reading paradiagm based on the framing.
-fn read<R: BufRead>(mut reader: R, from: FromFormat, framing: Option<Framing>, tx: &Sender) -> Result<()> {
+fn read<R: BufRead>(
+    mut reader: R,
+    from: FromFormat,
+    framing: Option<Framing>,
+    tx: &Sender,
+) -> Result<()> {
     if let Some(f) = framing {
         match f {
             Framing::Sized => read_exact(reader, from, &tx)?,
@@ -461,7 +469,7 @@ fn read<R: BufRead>(mut reader: R, from: FromFormat, framing: Option<Framing>, t
             if !buf.is_empty() {
                 tx.send(deserialize(&buf, from)?).unwrap();
             }
-        } 
+        }
     }
     Ok(())
 }
@@ -499,7 +507,13 @@ fn write_data<W: Write>(mut writer: W, data: &[u8], radix: Option<Radix>) -> Res
 ///
 /// The `display` value is ignored for writing the delimiter if delimited-based framing is used.
 /// This makes it easier to create an interactive console with the application.
-fn write<W: Write>(mut writer: W, to: ToFormat, framing: Option<Framing>, radix: Option<Radix>, rx: Receiver) -> Result<()> {
+fn write<W: Write>(
+    mut writer: W,
+    to: ToFormat,
+    framing: Option<Framing>,
+    radix: Option<Radix>,
+    rx: Receiver,
+) -> Result<()> {
     loop {
         if let Ok(data) = rx.recv() {
             let encoded_data = serialize(data, to)?;
@@ -509,8 +523,8 @@ fn write<W: Write>(mut writer: W, to: ToFormat, framing: Option<Framing>, radix:
                         let mut frame_length = [0; 4];
                         BigEndian::write_u32(&mut frame_length, encoded_data.len() as u32);
                         write_data(&mut writer, &frame_length, radix)?;
-                    },
-                    _ => {},
+                    }
+                    _ => {}
                 }
             }
             write_data(&mut writer, &encoded_data, radix)?;
@@ -526,8 +540,8 @@ fn write<W: Write>(mut writer: W, to: ToFormat, framing: Option<Framing>, radix:
                         // printed on the following line of the output when creating an interactive
                         // console.
                         writer.write(&[delimiter; 1])?;
-                    },
-                    _ => {},
+                    }
+                    _ => {}
                 }
             }
             writer.flush()?;
@@ -537,4 +551,3 @@ fn write<W: Write>(mut writer: W, to: ToFormat, framing: Option<Framing>, radix:
     }
     Ok(())
 }
-

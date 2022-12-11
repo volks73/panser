@@ -23,7 +23,6 @@ extern crate panser;
 use ansi_term::Colour;
 use clap::{App, Arg};
 use panser::{FromFormat, Panser, Radix, ToFormat};
-use std::error::Error;
 use std::io::Write;
 
 const ERROR_COLOR: Colour = Colour::Fixed(9); // bright red
@@ -132,7 +131,7 @@ fn main() {
             std::process::exit(0);
         },
         Err(e) => {
-            let mut tag = format!("Error[{}] ({})", e.code(), e.description());
+            let mut tag = format!("Error[{}] ({})", e.code(), e);
             if atty::is(atty::Stream::Stderr) {
                 tag = ERROR_COLOR.paint(tag).to_string()
             }

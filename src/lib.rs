@@ -6,12 +6,12 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Panser is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with Panser.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -77,7 +77,7 @@
 //! ```
 //!
 //! If the `-r,--radix` option is used, then the contents of the output file would _not_ be
-//! Msgpack data, but the space-separated list of bytes as numeric strings. 
+//! Msgpack data, but the space-separated list of bytes as numeric strings.
 //!
 //! ```bash
 //! $ echo '{"bool":true,"number":1.234}' | panser -r h -o file.msgpack
@@ -90,7 +90,7 @@
 //! to aid in buffering and creating stream-based applications. Note the first four bytes.
 //!
 //! ```bash
-//! $ echo '{"bool":true,"number":1.234}' | panser -r h --sized-output 
+//! $ echo '{"bool":true,"number":1.234}' | panser -r h --sized-output
 //! 00 00 00 17 82 A4 62 6F 6F 6C C3 A6 6E 75 6D 62 65 72 CB 3F F3 BE 76 C8 B4 39 58
 //! ```
 //!
@@ -158,7 +158,6 @@
 //! | 4    | Failure, error parsing integer     |
 //! | 5    | Failure, error with UTF-8 encoding |
 
-
 extern crate bincode;
 extern crate byteorder;
 //extern crate envy;
@@ -177,13 +176,13 @@ use std::error::Error as StdError;
 use std::fmt;
 use std::io;
 use std::num;
-use std::str::{self, FromStr};
 use std::result;
+use std::str::{self, FromStr};
 
 pub use self::panser::deserialize;
-pub use self::panser::Panser;
 pub use self::panser::serialize;
 pub use self::panser::transcode;
+pub use self::panser::Panser;
 
 mod panser;
 
@@ -218,15 +217,9 @@ pub enum ToFormat {
 impl ToFormat {
     pub fn possible_values() -> Vec<&'static str> {
         vec![
-            "Bincode", "bincode", "BINCODE",
-            "Cbor", "cbor", "CBOR",
-            "Hjson", "hjson", "HJSON",
-            "Json", "json", "JSON",
-            "Msgpack", "msgpack", "MSGPACK",
-            "Pickle", "pickle", "PICKLE",
-            "Toml", "toml", "TOML",
-            "Url", "url", "URL",
-            "Yaml", "yaml", "YAML",
+            "Bincode", "bincode", "BINCODE", "Cbor", "cbor", "CBOR", "Hjson", "hjson", "HJSON",
+            "Json", "json", "JSON", "Msgpack", "msgpack", "MSGPACK", "Pickle", "pickle", "PICKLE",
+            "Toml", "toml", "TOML", "Url", "url", "URL", "Yaml", "yaml", "YAML",
         ]
     }
 }
@@ -245,7 +238,7 @@ impl FromStr for ToFormat {
             "toml" => Ok(ToFormat::Toml),
             "url" => Ok(ToFormat::Url),
             "yaml" => Ok(ToFormat::Yaml),
-            _ => Err("No Match")
+            _ => Err("No Match"),
         }
     }
 }
@@ -286,16 +279,10 @@ pub enum FromFormat {
 impl FromFormat {
     pub fn possible_values() -> Vec<&'static str> {
         vec![
-            "Bincode", "bincode", "BINCODE",
-            "Cbor", "cbor", "CBOR",
-            "Envy", "envy", "ENVY",
-            "Hjson", "hjson", "HJSON",
-            "Json", "json", "JSON",
-            "Msgpack", "msgpack", "MSGPACK",
-            "Pickle", "pickle", "PICKLE",
-            "Toml", "toml", "TOML",
-            "Url", "url", "URL",
-            "Yaml", "yaml", "YAML",
+            "Bincode", "bincode", "BINCODE", "Cbor", "cbor", "CBOR", "Envy", "envy", "ENVY",
+            "Hjson", "hjson", "HJSON", "Json", "json", "JSON", "Msgpack", "msgpack", "MSGPACK",
+            "Pickle", "pickle", "PICKLE", "Toml", "toml", "TOML", "Url", "url", "URL", "Yaml",
+            "yaml", "YAML",
         ]
     }
 }
@@ -332,7 +319,7 @@ impl FromStr for FromFormat {
             "toml" => Ok(FromFormat::Toml),
             "url" => Ok(FromFormat::Url),
             "yaml" => Ok(FromFormat::Yaml),
-            _ => Err("No Match")
+            _ => Err("No Match"),
         }
     }
 }
@@ -353,10 +340,38 @@ pub enum Radix {
 impl Radix {
     pub fn possible_values() -> Vec<&'static str> {
         vec![
-            "b", "B", "bin", "Bin", "BIN", "binary", "Binary", "BINARY",
-            "d", "D", "dec", "Dec", "DEC", "decimal", "Decimal", "DECIMAL",
-            "h", "H", "hex", "Hex", "HEX", "hexadecimal", "Hexadecimal", "HEXADECIMAL",
-            "o", "O", "oct", "Oct", "OCT", "octal", "Octal", "OCTAL",
+            "b",
+            "B",
+            "bin",
+            "Bin",
+            "BIN",
+            "binary",
+            "Binary",
+            "BINARY",
+            "d",
+            "D",
+            "dec",
+            "Dec",
+            "DEC",
+            "decimal",
+            "Decimal",
+            "DECIMAL",
+            "h",
+            "H",
+            "hex",
+            "Hex",
+            "HEX",
+            "hexadecimal",
+            "Hexadecimal",
+            "HEXADECIMAL",
+            "o",
+            "O",
+            "oct",
+            "Oct",
+            "OCT",
+            "octal",
+            "Octal",
+            "OCTAL",
         ]
     }
 }
@@ -382,14 +397,14 @@ impl FromStr for Radix {
             "O" => Ok(Radix::Octal),
             "oct" => Ok(Radix::Octal),
             "octal" => Ok(Radix::Octal),
-            _ => Err("No match")
+            _ => Err("No match"),
         }
     }
 }
 
 impl fmt::Display for Radix {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self{
+        match *self {
             Radix::Binary => write!(f, "b, bin, or binary"),
             Radix::Decimal => write!(f, "d, dec, or decimal"),
             Radix::Hexadecimal => write!(f, "h, hex, or hexadecimal"),
@@ -401,7 +416,7 @@ impl fmt::Display for Radix {
 /// The error type for panser-releated operations and associated traits.
 ///
 /// Errors mostly originate from the dependencies, but custom instances of Error can be crated with
-/// the `Generic` variant and a message. 
+/// the `Generic` variant and a message.
 #[derive(Debug)]
 pub enum Error {
     /// Decoding/encoding of the Bincode format failed.
@@ -519,7 +534,7 @@ impl StdError for Error {
         }
     }
 
-    fn cause(&self) -> Option<&StdError> {
+    fn cause(&self) -> Option<&dyn StdError> {
         match *self {
             Error::Bincode(ref err) => Some(err),
             Error::Cbor(ref err) => Some(err),
@@ -555,24 +570,24 @@ impl From<serde_cbor::Error> for Error {
 }
 
 //impl From<envy::Error> for Error {
-    //fn from(err: envy::Error) -> Error {
-        //Error::Envy(err)
-    //}
+//fn from(err: envy::Error) -> Error {
+//Error::Envy(err)
+//}
 //}
 
-impl From<Box<Any + Send + 'static>> for Error {
-    fn from(err: Box<Any + Send + 'static>) -> Error {
-        err.downcast_ref::<Error>().map_or(
-            Error::Generic(format!("Unknown error: {:?}", err)), 
-            |e| Error::Generic(format!("{}", e))
-        )
+impl From<Box<dyn Any + Send + 'static>> for Error {
+    fn from(err: Box<dyn Any + Send + 'static>) -> Error {
+        err.downcast_ref::<Error>()
+            .map_or(Error::Generic(format!("Unknown error: {:?}", err)), |e| {
+                Error::Generic(format!("{}", e))
+            })
     }
 }
 
 //impl From<serde_hjson::Error> for Error {
-    //fn from(err: serde_hjson::Error) -> Error {
-        //Error::Hjson(err)
-    //}
+//fn from(err: serde_hjson::Error) -> Error {
+//Error::Hjson(err)
+//}
 //}
 
 impl From<io::Error> for Error {
@@ -646,4 +661,3 @@ impl From<serde_yaml::Error> for Error {
         Error::Yaml(err)
     }
 }
-
