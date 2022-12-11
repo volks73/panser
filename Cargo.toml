@@ -11,6 +11,7 @@ homepage = "https://github.com/volks73/panser"
 repository = "https://github.com/volks73/panser"
 documentation = "https://volks73.github.io/panser"
 build = "build.rs"
+rust-version = "1.41"
 
 [[bin]]
 name = "panser"
