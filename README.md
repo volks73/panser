@@ -66,7 +66,7 @@ using Cargo.
 
 - [Cargo](https://crates.io/), v0.17 or higher
 - [Pandoc](http://pandoc.org), v1.19 or higher, optional
-- [Rust](https://www.rust-lang.org/), v1.16 or higher
+- [Rust](https://www.rust-lang.org/), v1.41 or higher
 
 #### Application
 
