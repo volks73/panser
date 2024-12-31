@@ -23,7 +23,7 @@ name = "panser"
 
 [dependencies]
 ansi_term = "0.12"
-atty = ">0.2.14"
+atty = "0.2"
 bincode = "1"
 byteorder = "1"
 clap = "2"
